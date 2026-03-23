@@ -1,2 +1,2 @@
 # QuaLix
-"Simple (basit)" adlı mimarimin derleyicisi.
+"Düzen" adlı mimarimin derleyicisi.
