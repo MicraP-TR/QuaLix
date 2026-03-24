@@ -1,0 +1,386 @@
+================================================================
+QuaLix v1.0 - Düzen Mimarisi Assembler Dili Dokümantasyonu
+================================================================
+Yazan     : Micraçer Geliştirici Ekibi
+Hedef     : KodLib-Verse Ekosistem Geliştiricileri
+Platform  : Pardus/Linux (Host Sistem)
+Giriş     : .tbdd kaynak dosyasını .trbin ikili çıktısına çevirir.
+================================================================
+
+
+----------------------------------------------------------------
+1. TANIMLAR VE KISALTMALAR
+----------------------------------------------------------------
+
+TBDD      : Düzen mimarisinin assembler kaynak dosya formatı (.tbdd)
+TRBIN     : QuaLix derleyicisinin ürettiği ikili çıktı formatı (.trbin)
+QuaLix    : TBDD → TRBIN dönüşümünü gerçekleştiren assembler aracı
+MicraVM   : TRBIN dosyalarını çalıştıran sanal makine; hata denetimini üstlenir
+Düzen     : QuaLix'in hedef donanım/sanal mimarisi
+OPCODE    : Komut adı (örn: TAŞI, EKLE)
+MOD       : Komutun veri kaynak türü (REG veya IMM)
+DATA1     : Hedef operand (genellikle yazmaç)
+DATA2     : Kaynak operand (yazmaç veya anlık değer)
+REG       : Register (yazmaç) mod — veri başka bir yazmaçtan gelir
+IMM       : Immediate (anlık) mod — veri doğrudan sayı olarak verilir
+Config    : /usr/local/etc/QuaLix.conf — derleme uyarı/hata log dosyası
+
+
+----------------------------------------------------------------
+2. YAZMAÇLAR (REGISTER)
+----------------------------------------------------------------
+
+QuaLix'te kullanılabilen tüm yazmaçlar ve iç kimlikleri:
+
+  Yazmaç   Tam Adı                          İç ID
+  -------  --------------------------------  ------
+  AR       Aritmetik Yazmaç                  1
+  BADR     Bellek Adres Yazmaç               2
+  BADRO    Bellek Adres Yazmaç Offset        3
+  BGÇR     Bellek Girdi/Çıktı Yazmaç        4
+  ZR       Zamanlama Yazmaç                  5
+  GÇR      Girdi/Çıktı Yazmaç               6
+  R0       Genel Amaçlı Yazmaç 0            7
+  R1       Genel Amaçlı Yazmaç 1            8
+  R2       Genel Amaçlı Yazmaç 2            9
+  R3       Genel Amaçlı Yazmaç 3            10
+  R4       Genel Amaçlı Yazmaç 4            11
+  R5       Genel Amaçlı Yazmaç 5            12
+  R6       Genel Amaçlı Yazmaç 6            13
+  R7       Genel Amaçlı Yazmaç 7            14
+
+  Harf boyutu: Yazmaç isimleri ya tamamen BÜYÜK (AR, BADR) ya da
+  tamamen küçük (ar, badr) olmalıdır. "Ar", "aR" gibi karışık
+  kullanımlar tanınmaz ve hatalı davranışa yol açar.
+
+  Bilinmeyen bir yazmaç adı verilirse reg() fonksiyonu 0 döner.
+  Bu durum sessizce geçilir — MicraVM hata yakalar.
+
+
+----------------------------------------------------------------
+3. SÖZDIZIMI (SYNTAX)
+----------------------------------------------------------------
+
+  Genel format:
+    OPCODE MOD DATA1 DATA2;
+
+  Kurallar:
+  - Her token boşlukla ayrılır. Virgül KULLANILMAZ.
+  - Her komut satırı noktalı virgül (;) ile BİTMELİDİR.
+  - Noktalı virgül konulmazsa derleyici satır sonunu bulamaz
+    ve programı askıya alır (DONAR). Bu durum kasıtlı bir
+    tasarım kararıdır: donma, eksik ";" işaretidir.
+  - Sayısal değerler yalnızca onluk (decimal) tabanda yazılır.
+    Hex (0x) ve ikili (0b) desteklenmez.
+  - Her satır bir komuttur. Boş satırlar çıktıya boş satır ekler.
+
+  Yorum satırı:
+    Yorum desteği v1'de YOKTUR.
+
+  Etiket (label) / direktif:
+    v1'de YOKTUR.
+
+
+----------------------------------------------------------------
+4. MOD ALANI
+----------------------------------------------------------------
+
+  REG modu : DATA2 bir yazmaçtır.
+    Örnek: TAŞI REG AR R0;   → AR = R0
+
+  IMM modu : DATA2 bir sayıdır (decimal).
+    Örnek: TAŞI IMM AR 500;  → AR = 500
+
+  MOD da büyük/küçük harf kuralına tabidir: "REG" veya "reg".
+  Karışık kullanım ("Reg") tanınmaz; Config dosyasına hata yazılır.
+
+
+----------------------------------------------------------------
+5. KOMUT SETİ
+----------------------------------------------------------------
+
+  Not: Tüm komutlarda DATA1 hedeftir, DATA2 kaynaktır.
+  (dest-first sıralaması)
+
+  ---- Veri Taşıma ----
+
+  TAŞI REG <hedef_reg> <kaynak_reg>;
+    Açıklama : Bir yazmaçtan diğerine veri kopyalar.
+    TRBIN    : 0x2 | hedef_id | kaynak_id |
+    Örnek    : TAŞI REG AR R0;
+
+  TAŞI IMM <hedef_reg> <değer>;
+    Açıklama : Anlık decimal değeri yazmaca yükler. 16-bit.
+               Yüksek byte ve düşük byte ayrı ayrı yazılır.
+    TRBIN    : 0x3 | hedef_id | high_byte | low_byte |
+    Örnek    : TAŞI IMM AR 500;
+
+  ---- Aritmetik ----
+
+  EKLE REG <hedef_reg> <kaynak_reg>;
+    TRBIN : 0x4 | hedef_id | kaynak_id
+    Örnek : EKLE REG AR R1;
+
+  EKLE IMM <hedef_reg> <değer>;
+    TRBIN : 0x5 | hedef_id | high_byte | low_byte |
+    Örnek : EKLE IMM AR 10;
+
+  ÇIKAR REG <hedef_reg> <kaynak_reg>;
+    TRBIN : 0x6 | hedef_id | kaynak_id |
+    Örnek : ÇIKAR REG AR R2;
+
+  ÇIKAR IMM <hedef_reg> <değer>;
+    TRBIN : 0x7 | hedef_id | high_byte | high_byte |
+    Not   : v1 kaynak kodunda her iki byte da high_byte olarak
+            yazılmaktadır. Bu bilinen bir v1 davranışıdır.
+    Örnek : ÇIKAR IMM AR 5;
+
+  BÖL REG <hedef_reg> <kaynak_reg>;
+    TRBIN : 0xC | hedef_id | kaynak_id |
+    Örnek : BÖL REG AR R3;
+
+  BÖL IMM <hedef_reg> <değer>;
+    TRBIN : 0xD | hedef_id | high_byte | high_byte |
+    Örnek : BÖL IMM AR 4;
+
+  ÇARP REG <hedef_reg> <kaynak_reg>;
+    TRBIN : 0xE | hedef_id | kaynak_id |
+    Örnek : ÇARP REG AR R0;
+
+  ÇARP IMM <hedef_reg> <değer>;
+    TRBIN : 0xF | hedef_id | high_byte | high_byte |
+    Örnek : ÇARP IMM AR 3;
+
+  ---- Artırma / Azaltma ----
+
+  ++ <yazmaç>;
+    Açıklama : Yazmacı 1 artırır.
+    TRBIN    : 0xA | yazmaç_id |
+    Örnek    : ++ AR;
+
+  -- <yazmaç>;
+    Açıklama : Yazmacı 1 azaltır.
+    TRBIN    : 0x8 | yazmaç_id |
+    Örnek    : -- AR;
+
+  Not: ++ ve -- komutlarında MOD ve DATA alanları YOKTUR.
+  Format: OPCODE <yazmaç>;
+
+  ---- Karşılaştırma / Koşul ----
+
+  EĞER REG <hedef_reg> <kaynak_reg>;
+    TRBIN : 0x10 | hedef_id | kaynak_id |
+    Örnek : EĞER REG AR R0;
+
+  EĞER IMM <hedef_reg> <değer>;
+    TRBIN : 0x11 | hedef_id | high_byte | high_byte |
+    Örnek : EĞER IMM AR 0;
+
+  BÜYÜK <değer>;
+    Açıklama : Önceki EĞER sonucunu "büyük" koşuluyla değerlendirir.
+    TRBIN    : 0x12 | değer |
+    Örnek    : BÜYÜK 1;
+
+  KÜÇÜK <değer>;
+    Açıklama : Önceki EĞER sonucunu "küçük" koşuluyla değerlendirir.
+    TRBIN    : 0x16 | değer |
+    Örnek    : KÜÇÜK 1;
+
+  DOĞRU <değer>;
+    Açıklama : İki opcode'a eşlendi (0x14 ve 0x18). v1'de çift
+               tanım mevcuttur — bu bilinen bir v1 davranışıdır.
+    TRBIN    : 0x14 | değer | veya 0x18 | değer |
+    Örnek    : DOĞRU 1;
+
+  ---- Atlama ----
+
+  ZIPLA <hedef>;
+    Açıklama : Belirtilen konuma koşulsuz atlar.
+               "ZIPLA" veya "zıpla" her ikisi de geçerlidir.
+    TRBIN    : 0x1A | hedef |
+    Örnek    : ZIPLA 0;
+
+  ---- Bellek Erişimi ----
+
+  Bellek adresi BADR + BADRO birleşimiyle belirlenir.
+  BGÇR ise taşınan veriyi tutar.
+
+  REB YAZ;
+    Açıklama : BGÇR'deki veriyi (BADR+BADRO) adresine yazar.
+    TRBIN    : 0x1C | 0 |
+    Örnek    : REB YAZ;
+
+  REB OKU;
+    Açıklama : (BADR+BADRO) adresindeki veriyi BGÇR'ye okur.
+    TRBIN    : 0x1D | 0 |
+    Örnek    : REB OKU;
+
+  ---- Port (G/Ç) Erişimi ----
+
+  PORT YAZ <port_no>;
+    Açıklama : Belirtilen porta veri yazar.
+    TRBIN    : 0x1E | port_no |
+    Örnek    : PORT YAZ 3;
+
+  PORT OKU <port_no>;
+    Açıklama : Belirtilen porttan veri okur.
+    TRBIN    : 0x1F | port_no |
+    Örnek    : PORT OKU 3;
+
+  ---- Mantık ----
+
+  VE REG <hedef_reg> <kaynak_reg>;
+    TRBIN : 0x20 | hedef_id | kaynak_id |
+    Örnek : VE REG AR R0;
+
+  VE IMM <hedef_reg> <değer>;
+    TRBIN : 0x20 | hedef_id | high_byte | high_byte |
+    Örnek : VE IMM AR 255;
+
+  VEYA REG <hedef_reg> <kaynak_reg>;
+    TRBIN : 0x22 | hedef_id | kaynak_id |
+    Örnek : VEYA REG AR R1;
+
+  VEYA IMM <hedef_reg> <değer>;
+    TRBIN : 0x23 | hedef_id | high_byte | high_byte |
+    Örnek : VEYA IMM AR 128;
+
+  DEĞİL REG <hedef_reg> <kaynak_reg>;
+    TRBIN : 0x24 | hedef_id | kaynak_id |
+    Örnek : DEĞİL REG AR R0;
+
+  DEĞİL IMM <hedef_reg> <değer>;
+    TRBIN : 0x25 | hedef_id | high_byte | high_byte |
+    Örnek : DEĞİL IMM AR 1;
+
+
+----------------------------------------------------------------
+6. TRBIN ÇIKTI FORMATI
+----------------------------------------------------------------
+
+  QuaLix her komutu pipe (|) ile ayrılmış decimal sayılar
+  olarak yazar. Her komut satırı bir TRBIN satırına karşılık gelir.
+
+  Örnek TRBIN çıktısı:
+    2|1|7|
+    5|1|0|10|
+    10|1|
+
+  Alanlar soldan sağa: opcode_id | operand1 | operand2 | ...
+  Sayı formatı: decimal (onluk taban)
+
+
+----------------------------------------------------------------
+7. HATA YÖNETİMİ
+----------------------------------------------------------------
+
+  QuaLix iki tür hata üretir:
+
+  A) Derleme Zamanı Hataları (QuaLix tarafından):
+     Dosya açma/okuma/yazma sorunları için hata kodu ve mesaj
+     ekrana basılır, program sonlanır.
+
+     Hata Kodları:
+       0x0001 : Config dosyası açılamadı
+       0x0002 : Kaynak (.tbdd) dosyası açılamadı
+       0x0003 : Kaynak dosya bulunamadı
+       0x0004 : Kaynak dosyada okuma/yazma hatası
+       0x0005 : Kaynak dosyada kritik hata
+       0x0006 : Çıktı (.trbin) dosyası açılamadı
+       0x0007 : Çıktı dosyası bulunamadı
+       0x0008 : Çıktı dosyasında okuma/yazma hatası
+       0x0009 : Çıktı dosyasında kritik hata
+
+  B) Anlam Hataları (Config log'una yazılır):
+     Bilinmeyen MOD kullanımı gibi durumlar derlemeyi durdurmaz.
+     Hatalı satır Config dosyasına (/usr/local/etc/QuaLix.conf)
+     şu formatta kaydedilir:
+       Satır: <satır_no> | Bilinmeyen mod.
+
+  C) Çalışma Zamanı Hataları:
+     Tüm çalışma zamanı hataları MicraVM tarafından denetlenir.
+     QuaLix bu hatalara müdahale etmez.
+
+  D) Donma Durumu:
+     Satır sonuna ";" konulmazsa derleyici satır sonunu
+     tespit edemez ve program DONAR. Bu bir v1 tasarım
+     kararıdır. Program donduğunda ilk kontrol edilmesi
+     gereken şey eksik ";" karakteridir.
+
+
+----------------------------------------------------------------
+8. CLI KULLANIMI
+----------------------------------------------------------------
+
+  Kurulum:
+    QuaLix /load
+
+    /usr/local/bin/QuaLix konumuna kopyalar ve çalıştırma
+    iznini verir.
+
+  Derleme:
+    QuaLix <kaynak.tbdd> <çıktı.trbin>
+
+  Yardım:
+    QuaLix /help
+
+  Örnek:
+    QuaLix program.tbdd program.trbin
+
+
+----------------------------------------------------------------
+9. TAM ÖRNEK PROGRAM
+----------------------------------------------------------------
+
+  Aşağıdaki örnek AR yazmacına 10 yükler, R0'a 5 yükler,
+  AR'a R0'ı ekler ve sonucu porta yazar.
+
+  -- program.tbdd --
+
+  TAŞI IMM AR 10;
+  TAŞI IMM R0 5;
+  EKLE REG AR R0;
+  PORT YAZ 1;
+
+  -- Beklenen program.trbin çıktısı --
+
+  3|1|0|10|
+  3|7|0|5|
+  4|1|7
+  30|1|
+
+
+----------------------------------------------------------------
+10. BİLİNEN V1 DAVRANIŞLARI
+----------------------------------------------------------------
+
+  Aşağıdakiler hata değil, v1'e özgü tasarım kararlarıdır:
+
+  1. ÇIKAR IMM, BÖL IMM, ÇARP IMM, VE IMM, VEYA IMM, DEĞİL IMM
+     komutlarında 16-bit değerin high_byte'ı iki kez yazılır,
+     low_byte yazılmaz.
+
+  2. DOĞRU komutu hem 0x14 hem de 0x18 opcode'larına eşlenmiştir.
+     İkinci tanım birincinin üzerine yazar; bu durum kaynak kodda
+     bilinçli bırakılmıştır.
+
+  3. Bilinmeyen OPCODE sessizce geçilir; Config'e yazılmaz,
+     TRBIN'e eklenmez. Sadece boş satır eklenir.
+
+  4. Fonksiyon, prosedür, etiket, direktif ve standart
+     kütüphane v1'de YOKTUR.
+
+  5. VE IMM opcode'u REG moduyla aynı (0x20) kullanılmaktadır.
+
+
+----------------------------------------------------------------
+11. DOSYA UZANTILARI
+----------------------------------------------------------------
+
+  .tbdd   : QuaLix kaynak dosyası (TBDD assembler kodu)
+  .trbin  : QuaLix çıktı dosyası (Düzen mimarisi ikili verisi)
+
+
+================================================================
+Son güncelleme: QuaLix v1.0 - 24 Mart 2026
+================================================================
