@@ -2,7 +2,7 @@
 ║                                                                  ║
 ║                    QuaLix Derleyici Kurulum                      ║
 ║                                                                  ║
-║              (Linux / macOS - Teorik)                           ║
+║              (Linux / macOS - Teorik)                            ║
 ║                                                                  ║
 ╚══════════════════════════════════════════════════════════════════╝
 
@@ -47,7 +47,7 @@ g++ -O2 -std=c++11 -o QuaLix QuaLix.cpp
 ───────────────────────────────────────────────────────────────────
 
 # Derleyiciyi yükle (PATH'e ekler)
-QuaLix /load
+QuaLix /load .
 
 # Bir dosyayı derle
 QuaLix program.tbdd program.trbin
