@@ -1,0 +1,82 @@
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║                    QuaLix Derleyici Kurulum                      ║
+║                                                                  ║
+║              (Linux / macOS - Teorik)                           ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
+
+İÇİNDEKİLER:
+1. Gereksinimler
+2. Derleme
+3. Kurulum
+4. Test
+5. Kaldırma
+
+═══════════════════════════════════════════════════════════════════
+
+1. GEREKSİNİMLER
+───────────────────────────────────────────────────────────────────
+
+sudo apt update
+sudo apt install -y g++ make git
+
+───────────────────────────────────────────────────────────────────
+
+2. DERLEME
+───────────────────────────────────────────────────────────────────
+
+# Kaynak kodu indir
+git clone https://github.com/MicraP-TR/QuaLix.cpp
+cd QuaLix
+
+# Derle
+g++ -O2 -std=c++11 -o QuaLix QuaLix.cpp
+
+───────────────────────────────────────────────────────────────────
+
+3. KURULUM (Otomatik)
+───────────────────────────────────────────────────────────────────
+
+# QuaLix halletsin
+./QuaLix /load
+
+───────────────────────────────────────────────────────────────────
+
+5. QuaLix KOMUTLARI
+───────────────────────────────────────────────────────────────────
+
+# Derleyiciyi yükle (PATH'e ekler)
+QuaLix /load
+
+# Bir dosyayı derle
+QuaLix program.tbdd program.trbin
+
+# Çıktı: program.trbin (TBDD makine kodu)
+
+───────────────────────────────────────────────────────────────────
+
+7. KALDIRMA
+───────────────────────────────────────────────────────────────────
+
+# Yöntem 1
+sudo rm /usr/local/bin/QuaLix
+
+# Yöntem 2
+rm ~/.local/bin/QuaLix
+
+# PATH'ten kaldırmak için .bashrc'deki satırı sil
+
+───────────────────────────────────────────────────────────────────
+
+9. ÖRNEK KULLANIM
+───────────────────────────────────────────────────────────────────
+
+QuaLix /load                           # Kurulum
+QuaLix program.tbdd program.trbin      # Derle
+
+───────────────────────────────────────────────────────────────────
+
+QuaLix v1.5 - "Düzen" Mimarî Derleyici
+
+═══════════════════════════════════════════════════════════════════
