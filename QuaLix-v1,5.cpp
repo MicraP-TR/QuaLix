@@ -36,30 +36,28 @@ uint8_t reg(string reg_id) {
         return 1;
     } else if (reg_id == "BADR" || reg_id == "badr") {
         return 2;
-    } else if (reg_id == "BADRO" || reg_id == "badro") {
-        return 3;
     } else if (reg_id == "BGÇR" || reg_id == "bgçr") {
-        return 4;
+        return 3;
     } else if (reg_id == "ZR" || reg_id == "zr") {
-        return 5;
+        return 4;
     } else if (reg_id == "GÇR" || reg_id == "gçr") {
-        return 6;
+        return 5;
     } else if (reg_id == "R0" || reg_id == "r0") {
-        return 7;
+        return 6;
     } else if (reg_id == "R1" || reg_id == "r1") {
-        return 8;
+        return 7;
     } else if (reg_id == "R2" || reg_id == "r2") {
-        return 9;
+        return 8;
     } else if (reg_id == "R3" || reg_id == "r3") {
-        return 10;
+        return 9;
     } else if (reg_id == "R4" || reg_id == "r4") {
-        return 11;
+        return 10;
     } else if (reg_id == "R5" || reg_id == "r5") {
-        return 12;
+        return 11;
     } else if (reg_id == "R6" || reg_id == "r6") {
-        return 13;
+        return 12;
     } else if (reg_id == "R7" || reg_id == "r7") {
-        return 14;
+        return 13;
     } else {
         return 0;
     }
@@ -67,8 +65,8 @@ uint8_t reg(string reg_id) {
 
 int main(int argc, char* argv[]) {
     system("clear");
-    string cmd = argv[1]; // *.tbdd
-    if (argc >= 3) string cmd2 = argv[2]; // *.trbin
+    string cmd = argv[1]; // *.tbdd / command
+    if (argc >= 2) string cmd2 = argv[2]; // *.trbin
 
     if (cmd == "/load") {
         system("sudo cp ./QuaLix /usr/local/bin/QuaLix");
@@ -183,8 +181,8 @@ int main(int argc, char* argv[]) {
             if (T.MODE == "REG" || T.MODE == "reg") {
                 Out << 0x2 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << "|";
             } else if (T.MODE == "IMM" || T.MODE == "imm") {
-                uint16_t a = stoi(T.DATA2, nullptr, 10);
-                Out << 0x3 << "|" << (int)reg(T.DATA1) << "|" << ((a >> 8) & 0xff) << "|" << (a & 0xff) << "|";
+                uint32_t a = stoi(T.DATA2, nullptr, 10);
+                Out << 0x3 << "|" << (int)reg(T.DATA1) << "|" << (int)a << "|";
             } else {
                 continue;
             }
@@ -194,8 +192,8 @@ int main(int argc, char* argv[]) {
             if (T.MODE == "REG" || T.MODE == "reg") {
                 Out << 0x4 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == "IMM" || T.MODE == "imm") {
-                uint16_t a = stoi(T.DATA2, nullptr, 10);
-                Out << 0x5 << "|" << (int)reg(T.DATA1) << "|" << ((a >> 8) & 0xff) << "|" << (a & 0xff) << "|";
+                uint32_t a = stoi(T.DATA2, nullptr, 10);
+                Out << 0x5 << "|" << (int)reg(T.DATA1) << "|" << (int)a << "|";
             } else {
                 continue;
             }
@@ -205,8 +203,8 @@ int main(int argc, char* argv[]) {
             if (T.MODE == "REG" || T.MODE == "reg") {
                 Out << 0x6 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << "|";
             } else if (T.MODE == "IMM" || T.MODE == "imm") {
-                uint16_t a = stoi(T.DATA2, nullptr, 10);
-                Out << 0x7 << "|" << (int)reg(T.DATA1) << "|" << ((a >> 8) & 0xff) << "|" << ((a >> 8) & 0xff) << "|";
+                uint32_t a = stoi(T.DATA2, nullptr, 10);
+                Out << 0x7 << "|" << (int)reg(T.DATA1) << "|" << (int)a << "|";
             } else {
                 continue;
             }
@@ -224,8 +222,8 @@ int main(int argc, char* argv[]) {
             if (T.MODE == "REG" || T.MODE == "reg") {
                 Out << 0xC << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << "|";
             } else if (T.MODE == "IMM" || T.MODE == "imm") {
-                uint16_t a = stoi(T.DATA2, nullptr, 10);
-                Out << 0xD << "|" << (int)reg(T.DATA1) << "|" << ((a >> 8) & 0xff) << "|" << ((a >> 8) & 0xff) << "|";
+                uint32_t a = stoi(T.DATA2, nullptr, 10);
+                Out << 0xD << "|" << (int)reg(T.DATA1) << "|" << (int)a << "|";
             } else {
                 continue;
             }
@@ -235,8 +233,8 @@ int main(int argc, char* argv[]) {
             if (T.MODE == "REG" || T.MODE == "reg") {
                 Out << 0xE << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << "|";
             } else if (T.MODE == "IMM" || T.MODE == "imm") {
-                uint16_t a = stoi(T.DATA2, nullptr, 10);
-                Out << 0xF << "|" << (int)reg(T.DATA1) << "|" << ((a >> 8) & 0xff) << "|" << ((a >> 8) & 0xff) << "|";
+                uint32_t a = stoi(T.DATA2, nullptr, 10);
+                Out << 0xF << "|" << (int)reg(T.DATA1) << "|" << (int)a << "|";
             } else {
                 continue;
             }
@@ -246,8 +244,8 @@ int main(int argc, char* argv[]) {
             if (T.MODE == "REG" || T.MODE == "reg") {
                 Out << 0x10 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << "|";
             } else if (T.MODE == "IMM" || T.MODE == "imm") {
-                uint16_t a = stoi(T.DATA2, nullptr, 10);
-                Out << 0x11 << "|" << (int)reg(T.DATA1) << "|" << ((a >> 8) & 0xff) << "|" << ((a >> 8) & 0xff) << "|";
+                uint32_t a = stoi(T.DATA2, nullptr, 10);
+                Out << 0x11 << "|" << (int)reg(T.DATA1) << "|" << (int)a << "|";
             } else {
                 continue;
             }
@@ -297,8 +295,8 @@ int main(int argc, char* argv[]) {
             if (T.MODE == "REG" || T.MODE == "reg") {
                 Out << 0x20 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << "|";
             } else if (T.MODE == "IMM" || T.MODE == "imm") {
-                uint16_t a = stoi(T.DATA2, nullptr, 10);
-                Out << 0x20 << "|" << (int)reg(T.DATA1) << "|" << ((a >> 8) & 0xff) << "|" << ((a >> 8) & 0xff) << "|";
+                uint32_t a = stoi(T.DATA2, nullptr, 10);
+                Out << 0x20 << "|" << (int)reg(T.DATA1) << "|" << (int)a << "|";
             } else {
                 continue;
             }
@@ -308,8 +306,8 @@ int main(int argc, char* argv[]) {
             if (T.MODE == "REG" || T.MODE == "reg") {
                 Out << 0x22 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << "|";
             } else if (T.MODE == "IMM" || T.MODE == "imm") {
-                uint16_t a = stoi(T.DATA2, nullptr, 10);
-                Out << 0x23 << "|" << (int)reg(T.DATA1) << "|" << ((a >> 8) & 0xff) << "|" << ((a >> 8) & 0xff) << "|";
+                uint32_t a = stoi(T.DATA2, nullptr, 10);
+                Out << 0x23 << "|" << (int)reg(T.DATA1) << "|" << (int)a << "|";
             } else {
                 continue;
             }
@@ -319,17 +317,17 @@ int main(int argc, char* argv[]) {
             if (T.MODE == "REG" || T.MODE == "reg") {
                 Out << 0x24 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << "|";
             } else if (T.MODE == "IMM" || T.MODE == "imm") {
-                uint16_t a = stoi(T.DATA2, nullptr, 10);
-                Out << 0x25 << "|" << (int)reg(T.DATA1) << "|" << ((a >> 8) & 0xff) << "|" << ((a >> 8) & 0xff) << "|";
+                uint32_t a = stoi(T.DATA2, nullptr, 10);
+                Out << 0x25 << "|" << (int)reg(T.DATA1) << "|" << (int)a << "|";
             } else {
                 continue;
             }
         }
 
-        if (T.OPCODE == "/ygib" || T.OPCODE == "/ygib") {
-            uint16_t a = stoi(T.DATA2, nullptr, 10);
-            Out << 0x3 << "|" << 6 << "|" << ((a >> 8) & 0xff) << "|" << (a & 0xff) << "|";
-        }
+        /*if (T.OPCODE == "/ygib" || T.OPCODE == "/ygib") {             // DENEYSEL!!!
+            uint32_t a = stoi(T.DATA2, nullptr, 10);
+            Out << 0x3 << "|" << 6 << "|" << (int)a << "|";
+        }*/
 
         Out << endl;
     }
