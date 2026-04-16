@@ -2,7 +2,8 @@ name: Build
 on: [push]
 jobs:
   build:
-    runs-on: pardus
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: g++ qualix.cpp -o qualix
+      - run: g++ QuaLix-v1,5.cpp -o qualix-v1,5
+      - run: g++ QuaLix-v1.cpp -o qualix-v1
