@@ -5,4 +5,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: g++ qualix.cpp -o qualix
+      - run: g++ QuaLix-v2.cpp -o qualix
