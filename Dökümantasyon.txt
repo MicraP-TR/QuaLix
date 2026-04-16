@@ -189,21 +189,31 @@ QuaLix'te kullanılabilen tüm yazmaçlar ve iç kimlikleri:
     TRBIN    : 0x16 | kaynak_id |
     Örnek    : DOĞRU AR;
 
-  DOĞRU <kaynak_id>;
+  DOĞRU <değer>;
     Açıklama : Önceki EĞER sonucunu "doğru" koşuluyla değerlendirir. Sonuç doğru çıkarsa belirtilen kaynağa zıplar. Doğru değilse hiç zıplamaz.
-    TRBIN    : 0x17 | kaynak_id |
+    TRBIN    : 0x17 | değer |
     Örnek    : DOĞRU 10;
+
+  YANLIŞ <kaynak_id>;
+    Açıklama : Önceki EĞER sonucunu "yanlış" koşuluyla değerlendirir. Sonuç yanlış çıkarsa belirtilen kaynağa zıplar. Yanlış değilse hiç zıplamaz.
+    TRBIN    : 0x18 | kaynak_id |
+    Örnek    : YANLIŞ AR;
+
+  YANLIŞ <değer>;
+    Açıklama : Önceki EĞER sonucunu "yanlış" koşuluyla değerlendirir. Sonuç yanlış çıkarsa belirtilen kaynağa zıplar. Yanlış değilse hiç zıplamaz.
+    TRBIN    : 0x19 | değer |
+    Örnek    : YANLIŞ 10;
 
   ---- Atlama ----
 
   ZIPLA <kaynak_id>;
     Açıklama : Belirtilen konuma koşulsuz atlar. "ZIPLA" veya "zıpla" her ikisi de geçerlidir.
-    TRBIN    : 0x18 | kaynak_id |
+    TRBIN    : 0x1A | kaynak_id |
     Örnek    : ZIPLA AR;
 
   ZIPLA <değer>;
     Açıklama : Belirtilen konuma koşulsuz atlar. "ZIPLA" veya "zıpla" her ikisi de geçerlidir.
-    TRBIN    : 0x19 | değer |
+    TRBIN    : 0x1B | değer |
     Örnek    : ZIPLA 10;
 
   ---- Bellek Erişimi ----
@@ -213,12 +223,12 @@ QuaLix'te kullanılabilen tüm yazmaçlar ve iç kimlikleri:
 
   RYAZ;
     Açıklama : BGÇR'deki veriyi (BADR) adresine yazar.
-    TRBIN    : 0x1A |
+    TRBIN    : 0x1C |
     Örnek    : RYAZ;
 
   REB OKU;
     Açıklama : (BADR) adresindeki veriyi BGÇR'ye okur.
-    TRBIN    : 0x1C |
+    TRBIN    : 0x1D |
     Örnek    : ROKU;
 
   ---- Port (G/Ç) Erişimi ----
@@ -226,37 +236,47 @@ QuaLix'te kullanılabilen tüm yazmaçlar ve iç kimlikleri:
   PYAZ <port_no>;
     Açıklama : Belirtilen porta veri yazar.
     TRBIN    : 0x1E | port_no |
-    Örnek    : PYAZ AR/10;
+    Örnek    : PYAZ AR;
+
+  PYAZ <port_no>;
+    Açıklama : Belirtilen porta veri yazar.
+    TRBIN    : 0x1F | port_no |
+    Örnek    : PYAZ 10;
 
   POKU <port_no>;
     Açıklama : Belirtilen porttan veri okur.
-    TRBIN    : 0x1F | port_no |
-    Örnek    : PORT AR/10;
+    TRBIN    : 0x20 | port_no |
+    Örnek    : POKU AR;
+
+  POKU <port_no>;
+    Açıklama : Belirtilen porttan veri okur.
+    TRBIN    : 0x21 | port_no |
+    Örnek    : POKU 10;
 
   ---- Mantık ----
 
   VE <hedef_reg> <kaynak_reg>;
-    TRBIN : 0x20 | hedef_id | kaynak_id |
+    TRBIN : 0x22 | hedef_id | kaynak_id |
     Örnek : VE AR 0R;
 
   VE <hedef_reg> <değer>;
-    TRBIN : 0x20 | hedef_id | high/low_byte |
+    TRBIN : 0x23 | hedef_id | high/low_byte |
     Örnek : VE AR 255;
 
   VEYA <hedef_reg> <kaynak_reg>;
-    TRBIN : 0x22 | hedef_id | kaynak_id |
+    TRBIN : 0x24 | hedef_id | kaynak_id |
     Örnek : VEYA AR 1R;
 
   VEYA <hedef_reg> <değer>;
-    TRBIN : 0x23 | hedef_id | high/low_byte |
+    TRBIN : 0x25 | hedef_id | high/low_byte |
     Örnek : VEYA AR 128;
 
   DEĞİL <hedef_reg> <kaynak_reg>;
-    TRBIN : 0x24 | hedef_id | kaynak_id |
+    TRBIN : 0x26 | hedef_id | kaynak_id |
     Örnek : DEĞİL AR 0R;
 
   DEĞİL <hedef_reg> <değer>;
-    TRBIN : 0x25 | hedef_id | high/low_byte |
+    TRBIN : 0x27 | hedef_id | high/low_byte |
     Örnek : DEĞİL AR 1;
 
 
@@ -340,14 +360,14 @@ QuaLix'te kullanılabilen tüm yazmaçlar ve iç kimlikleri:
 
   -- Beklenen program.trbin çıktısı --
 
-  3|1|10|
-  3|7|5|
-  4|1|7|
-  30|1|
+  3|1|10
+  3|6|5
+  5|1|0
+  31|1
 
 
 ----------------------------------------------------------------
-10. BİLİNEN V1 DAVRANIŞLARI
+10. BİLİNEN V2 DAVRANIŞLARI
 ----------------------------------------------------------------
 
   1. Bilinmeyen OPCODE sessizce geçilir; Config'e yazılmaz,
@@ -367,5 +387,3 @@ QuaLix'te kullanılabilen tüm yazmaçlar ve iç kimlikleri:
 ================================================================
 Son güncelleme: QuaLix v2.0 - 16 Nisan 2026
 ================================================================
-
-NOT: Bu dökümantasyon hâlâ yazılmaktadır.
