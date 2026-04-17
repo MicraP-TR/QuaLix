@@ -14,14 +14,14 @@ struct INFO {
 
 INFO info;
 
-struct T {
+struct t {
     string OPCODE;        // KAPI, RAM, PORTA vs.
     bool MODE;          // IMM mi REG mi?
     string DATA1;         // 123, 0xAA (hedef)
     string DATA2;         // 456, 0xBB (kaynak)
 };
 
-T T;
+t T;
 
 // Yerel fonks:,
 
@@ -59,7 +59,6 @@ uint8_t reg(string reg_id) {
 
 int main(int argc, char* argv[]) {
     system("clear");
-
     string cmd = argv[1]; // *.tbdd / command
     if (argc >= 2) string cmd2 = argv[2]; // *.trbin
 
@@ -140,56 +139,88 @@ int main(int argc, char* argv[]) {
 
     string c;
     string d;
+    bool tab;
 
     while (getline(File, KOD)) {
         T.OPCODE = "";
         T.DATA1 = "";
         T.DATA2 = "";
-        T.MODE = false;
+        T.MODE = true;
         info.uinter++;
         i = 0;
         info.counter = 0;
 
-        while (true) {
+        if (KOD.substr(0, 3) == "   ") {
+            tab = true;
+        } else {
+            tab = false;
+        }
+
+        while (i < KOD.size()) {
             c = KOD.substr(i, 1);
 
-            if (c == ";" || KOD.size() == i) {
-                break;
+            if (i + 1 < KOD.size()) {
+                d = KOD.substr(i + 1, 1);
+            } else {
+                d = "";
             }
 
-            d = KOD.substr(i + 1, 1);
-
             if (c == " ") {
-                if (d != " " && d != ",") {
-                    info.counter++;
+                if (d != " " && d != "," && d != "") {
+                    if (info.counter == 3) {
+                        break;
+                    } else {
+                        if (info.counter == 0 && tab == true) {
+                            tab = false;
+                            i++;
+                            continue;
+                        }
+                        if (tab == false) {
+                            info.counter++;
+                            i++;
+                            continue;
+                        }
+                    }
                 }
             } else if (c != " ") {
+                if (info.counter == 3) break;
                 if (info.counter == 0) T.OPCODE += c;
                 if (info.counter == 1) T.DATA1 += c;
                 if (info.counter == 2) T.DATA2 += c;
-                if (info.counter == 3) break;
             }
 
             i++;
         }
 
-        if (T.DATA2.substr(T.DATA2.size(), 1) != "r" ||
-            T.DATA2.substr(T.DATA2.size(), 1) != "R") {
-            T.MODE == false;
+        if (!T.DATA2.empty() && (T.DATA2.back() == 'r' || T.DATA2.back() == 'R')) {
+            T.MODE = true;
         } else {
-            T.MODE == true;
+            T.MODE = false;
         }
 
-        uint32_t imm = 0;
+        uint32_t immh = 0;
+        uint32_t imml = 0;
         if (T.MODE == false) {
-            if (T.DATA2.substr(0, 2) == "0b") {
-                T.DATA2.erase(0, 2);
-                imm = stoi(T.DATA2, nullptr, 2);
-            } else if (T.DATA2.substr(0, 2) == "0x") {
-                T.DATA2.erase(0, 2);
-                imm = stoi(T.DATA2, nullptr, 16);
+            if (T.DATA1.back() != 'r' && T.DATA1.back() != 'R') {
+                if (T.DATA1.substr(0, 2) == "0b") {
+                    T.DATA1.erase(0, 2);
+                    imml = stoi(T.DATA1, nullptr, 2);
+                } else if (T.DATA1.substr(0, 2) == "0x") {
+                    T.DATA1.erase(0, 2);
+                    imml = stoi(T.DATA1, nullptr, 16);
+                } else {
+                    imml = stoi(T.DATA1, nullptr, 10);
+                }
             } else {
-                imm = stoi(T.DATA2, nullptr, 10);
+                if (T.DATA2.substr(0, 2) == "0b") {
+                    T.DATA2.erase(0, 2);
+                    immh = stoi(T.DATA2, nullptr, 2);
+                } else if (T.DATA2.substr(0, 2) == "0x") {
+                    T.DATA2.erase(0, 2);
+                    immh = stoi(T.DATA2, nullptr, 16);
+                } else {
+                    immh = stoi(T.DATA2, nullptr, 10);
+                }
             }
         }
 
@@ -197,7 +228,7 @@ int main(int argc, char* argv[]) {
             if (T.MODE == true) {
                 Out << 0x2 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x3 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x3 << "|" << (int)reg(T.DATA1) << "|" << (int)immh;
             } else {
                 continue;
             }
@@ -207,17 +238,17 @@ int main(int argc, char* argv[]) {
             if (T.MODE == true) {
                 Out << 0x4 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x5 << "|" << (int)reg(T.DATA1) << "|" << stoi(T.DATA2, nullptr, 10);
+                Out << 0x5 << "|" << (int)reg(T.DATA1) << "|" << (int)immh;
             } else {
                 continue;
             }
         }
 
         if (T.OPCODE == "ÇIKAR" || T.OPCODE == "çıkar") {
-	        if (T.MODE == true) {
+            if (T.MODE == true) {
                 Out << 0x6 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x7 << "|" << (int)reg(T.DATA1) << "|" << stoi(T.DATA2, nullptr, 10);
+                Out << 0x7 << "|" << (int)reg(T.DATA1) << "|" << (int)immh;
             } else {
                 continue;
             }
@@ -235,7 +266,7 @@ int main(int argc, char* argv[]) {
             if (T.MODE == true) {
                 Out << 0xC << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0xD << "|" << (int)reg(T.DATA1) << "|" << stoi(T.DATA2, nullptr, 10);
+                Out << 0xD << "|" << (int)reg(T.DATA1) << "|" << (int)immh;
             } else {
                 continue;
             }
@@ -245,7 +276,7 @@ int main(int argc, char* argv[]) {
             if (T.MODE == true) {
                 Out << 0xE << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0xF << "|" << (int)reg(T.DATA1) << "|" << stoi(T.DATA2, nullptr, 10);
+                Out << 0xF << "|" << (int)reg(T.DATA1) << "|" << (int)immh;
             } else {
                 continue;
             }
@@ -255,7 +286,7 @@ int main(int argc, char* argv[]) {
             if (T.MODE == true) {
                 Out << 0x10 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x11 << "|" << (int)reg(T.DATA1) << "|" << stoi(T.DATA2, nullptr, 10);
+                Out << 0x11 << "|" << (int)reg(T.DATA1) << "|" << (int)immh;
             } else {
                 continue;
             }
@@ -265,17 +296,7 @@ int main(int argc, char* argv[]) {
             if (T.MODE == true) {
                 Out << 0x12 << "|" << (int)reg(T.DATA1);
             } else if (T.MODE == false) {
-                Out << 0x13 << "|" << stoi(T.DATA1, nullptr, 10);
-            } else {
-                continue;
-            }
-        }
-
-        if (T.OPCODE == "DOĞRU" || T.OPCODE == "doğru") {
-            if (T.MODE == true) {
-                Out << 0x14 << "|" << (int)reg(T.DATA1);
-            } else if (T.MODE == false) {
-                Out << 0x15 << "|" << stoi(T.DATA1, nullptr, 10);
+                Out << 0x13 << "|" << (int)imml;
             } else {
                 continue;
             }
@@ -283,9 +304,19 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "KÜÇÜK" || T.OPCODE == "küçük") {
             if (T.MODE == true) {
+                Out << 0x14 << "|" << (int)reg(T.DATA1);
+            } else if (T.MODE == false) {
+                Out << 0x15 << "|" << (int)imml;
+            } else {
+                continue;
+            }
+        }
+
+        if (T.OPCODE == "DOĞRU" || T.OPCODE == "doğru") {
+            if (T.MODE == true) {
                 Out << 0x16 << "|" << (int)reg(T.DATA1);
             } else if (T.MODE == false) {
-                Out << 0x17 << "|" << stoi(T.DATA1, nullptr, 10);
+                Out << 0x17 << "|" << (int)imml;
             } else {
                 continue;
             }
@@ -295,7 +326,7 @@ int main(int argc, char* argv[]) {
             if (T.MODE == true) {
                 Out << 0x18 << "|" << (int)reg(T.DATA1);
             } else if (T.MODE == false) {
-                Out << 0x19 << "|" << stoi(T.DATA1, nullptr, 10);
+                Out << 0x19 << "|" << (int)imml;
             } else {
                 continue;
             }
@@ -303,49 +334,37 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "ZIPLA" || T.OPCODE == "zıpla") {
             if (T.MODE == true) {
-                Out << 0x20 << "|" << (int)reg(T.DATA1);
+                Out << 0x1A << "|" << (int)reg(T.DATA1);
             } else if (T.MODE == false) {
-                Out << 0x21 << "|" << stoi(T.DATA1, nullptr, 10);
+                Out << 0x1B << "|" << (int)imml;
             } else {
                 continue;
             }
         }
 
         if (T.OPCODE == "RYAZ" || T.OPCODE == "ryaz") {
-            if (T.MODE == true) {
-                Out << 0x22 << "|" << (int)reg(T.DATA1);
-            } else if (T.MODE == false) {
-                Out << 0x23 << "|" << stoi(T.DATA1, nullptr, 10);
-            } else {
-                continue;
-            }
+            Out << 0x1C << "|";
         }
 
         if (T.OPCODE == "ROKU" || T.OPCODE == "roku") {
-            if (T.MODE == true) {
-                Out << 0x24 << "|" << (int)reg(T.DATA1);
-            } else if (T.MODE == false) {
-                Out << 0x25 << "|" << stoi(T.DATA1, nullptr, 10);
-            } else {
-                continue;
-            }
+            Out << 0x1D << "|";
         }
 
         if (T.OPCODE == "PYAZ" || T.OPCODE == "pyaz") {
-            if (T.MODE == true) {
-                Out << 0x26 << "|" << (int)reg(T.DATA1);
-            } else if (T.MODE == false) {
-                Out << 0x27 << "|" << stoi(T.DATA1, nullptr, 10);
+            if (T.DATA1.substr(T.DATA1.size(), 1) == "r" || T.DATA1.substr(T.DATA1.size(), 1) == "R") {
+                Out << 0x1E << "|" << (int)reg(T.DATA1);
+            } else if (T.DATA1.substr(T.DATA1.size(), 1) != "r" || T.DATA1.substr(T.DATA1.size(), 1) != "R") {
+                Out << 0x1F << "|" << (int)imml;
             } else {
                 continue;
             }
         }
 
         if (T.OPCODE == "POKU" || T.OPCODE == "poku") {
-            if (T.MODE == true) {
-                Out << 0x28 << "|" << (int)reg(T.DATA1);
-            } else if (T.MODE == false) {
-                Out << 0x29 << "|" << stoi(T.DATA1, nullptr, 10);
+            if (T.DATA1.substr(T.DATA1.size() - 1, 1) == "r" || T.DATA1.substr(T.DATA1.size() - 1, 1) == "R") {
+                Out << 0x20 << "|" << (int)reg(T.DATA1);
+            } else if (T.DATA1.substr(T.DATA1.size() - 1, 1) != "r" || T.DATA1.substr(T.DATA1.size() - 1, 1) != "R") {
+                Out << 0x21 << "|" << (int)imml;
             } else {
                 continue;
             }
@@ -353,9 +372,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "VE" || T.OPCODE == "ve") {
             if (T.MODE == true) {
-                Out << 0x2A << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x22 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x2B << "|" << (int)reg(T.DATA1) << "|" << stoi(T.DATA2, nullptr, 10);
+                Out << 0x23 << "|" << (int)reg(T.DATA1) << "|" << (int)immh;
             } else {
                 continue;
             }
@@ -363,9 +382,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "VEYA" || T.OPCODE == "veya") {
             if (T.MODE == true) {
-                Out << 0x2C << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x24 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x2D << "|" << (int)reg(T.DATA1) << "|" << stoi(T.DATA2, nullptr, 10);
+                Out << 0x25 << "|" << (int)reg(T.DATA1) << "|" << (int)immh;
             } else {
                 continue;
             }
@@ -373,18 +392,13 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "DEĞİL" || T.OPCODE == "değil") {
             if (T.MODE == true) {
-                Out << 0x2E << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x26 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x2F << "|" << (int)reg(T.DATA1) << "|" << stoi(T.DATA2, nullptr, 10);
+                Out << 0x27 << "|" << (int)reg(T.DATA1) << "|" << (int)immh;
             } else {
                 continue;
             }
-        }
-
-        /*if (T.OPCODE == "/ygib" || T.OPCODE == "/ygib") {             // DENEYSEL!!!
-            uint32_t a = stoi(T.DATA2, nullptr, 10);
-            Out << 0x3 << "|" << 6 << "|" << (int)a << "|";
-        }*/
+		}
 
         Out << endl;
     }
