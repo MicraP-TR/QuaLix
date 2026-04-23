@@ -1,389 +1,395 @@
 ================================================================
-QuaLix v1.0 - Düzen Mimarisi Assembler Dili Dokümantasyonu
+QuaLix v2.5 - Düzen Mimarisi Assembler Dili Dokümantasyonu
 ================================================================
-Yazan     : Micraçer Geliştirici Ekibi
-Hedef     : KodLib-Verse Ekosistem Geliştiricileri
-Platform  : Pardus/Linux (Host Sistem)
-Giriş     : .tbdd kaynak dosyasını .trbin ikili çıktısına çevirir.
+Yazan : Micraçer Geliştirici Ekibi
+Hedef : KodLib-Verse Ekosistem Geliştiricileri
+Platform : Pardus/Linux (Host Sistem)
+Giriş : .tbdd kaynak dosyasını .trbin ikili çıktısına çevirir.
 ================================================================
 
+TANIMLAR VE KISALTMALAR
 
-----------------------------------------------------------------
-1. TANIMLAR VE KISALTMALAR
-----------------------------------------------------------------
+TBDD    : Düzen mimarisinin assembler kaynak dosya formatı (.tbdd)
+TRBIN   : QuaLix derleyicisinin ürettiği ikili çıktı formatı (.trbin)
+QuaLix  : TBDD → TRBIN dönüşümünü gerçekleştiren assembler aracı
+MicraVM : TRBIN dosyalarını çalıştıran sanal makine; hata denetimini üstlenir
+Düzen   : QuaLix'in hedef donanım/sanal mimarisi
+OPCODE  : Komut adı (örn: TAŞI, EKLE)
+MOD     : Komutun veri kaynak türü (REG veya IMM)
+DATA1   : Hedef operand (yazmaç)
+DATA2   : Kaynak operand (yazmaç veya değer)
+REG     : Register (yazmaç) mod — veri başka bir yazmaçtan gelir
+IMM     : Immediate (anlık) mod — veri doğrudan sayı olarak verilir
 
-TBDD      : Düzen mimarisinin assembler kaynak dosya formatı (.tbdd)
-TRBIN     : QuaLix derleyicisinin ürettiği ikili çıktı formatı (.trbin)
-QuaLix    : TBDD → TRBIN dönüşümünü gerçekleştiren assembler aracı
-MicraVM   : TRBIN dosyalarını çalıştıran sanal makine; hata denetimini üstlenir
-Düzen     : QuaLix'in hedef donanım/sanal mimarisi
-OPCODE    : Komut adı (örn: TAŞI, EKLE)
-MOD       : Komutun veri kaynak türü (REG veya IMM)
-DATA1     : Hedef operand (genellikle yazmaç)
-DATA2     : Kaynak operand (yazmaç veya anlık değer)
-REG       : Register (yazmaç) mod — veri başka bir yazmaçtan gelir
-IMM       : Immediate (anlık) mod — veri doğrudan sayı olarak verilir
-Config    : /usr/local/etc/QuaLix.conf — derleme uyarı/hata log dosyası
-
-
-----------------------------------------------------------------
-2. YAZMAÇLAR (REGISTER)
-----------------------------------------------------------------
+YAZMAÇLAR (REGISTER)
 
 QuaLix'te kullanılabilen tüm yazmaçlar ve iç kimlikleri:
 
-  Yazmaç   Tam Adı                          İç ID
-  -------  --------------------------------  ------
-  AR       Aritmetik Yazmaç                  1
-  BADR     Bellek Adres Yazmaç               2
-  BGÇR     Bellek Girdi/Çıktı Yazmaç         4
-  ZR       Zamanlama Yazmaç                  5
-  GÇR      Girdi/Çıktı Yazmaç                6
-  0R       Genel Amaçlı Yazmaç 0             7
-  1R       Genel Amaçlı Yazmaç 1             8
-  2R       Genel Amaçlı Yazmaç 2             9
-  3R       Genel Amaçlı Yazmaç 3             10
-  4R       Genel Amaçlı Yazmaç 4             11
-  5R       Genel Amaçlı Yazmaç 5             12
-  6R       Genel Amaçlı Yazmaç 6             13
-  7R       Genel Amaçlı Yazmaç 7             14
+Yazmaç | Tam Adı                   | ID
+       |                           |
+AR     | Aritmetik Yazmaç          | 1
+BADR   | Bellek Adres Yazmaç       | 2
+BGÇR   | Bellek Girdi/Çıktı Yazmaç | 3
+ZR     | Zamanlama Yazmaç          | 4
+GÇR    | Girdi/Çıktı Yazmaç        | 5
+0R     | Genel Amaçlı Yazmaç 0     | 6
+1R     | Genel Amaçlı Yazmaç 1     | 7
+2R     | Genel Amaçlı Yazmaç 2     | 8
+3R     | Genel Amaçlı Yazmaç 3     | 9
+4R     | Genel Amaçlı Yazmaç 4     | 10
+5R     | Genel Amaçlı Yazmaç 5     | 11
+6R     | Genel Amaçlı Yazmaç 6     | 12
+7R     | Genel Amaçlı Yazmaç 7     | 13
+
+Harf boyutu: Yazmaç isimleri ya tamamen BÜYÜK (AR, BADR) ya da
+tamamen küçük (ar, badr) olmalıdır. "Ar", "aR" gibi karışık
+kullanımlar tanınmaz ve hatalı davranışa yol açar.
+
+Bilinmeyen bir yazmaç adı verilirse reg() fonksiyonu 0 döner.
+Geçersiz yazmaç kullanımı stderr'e "SATIR: <no> Geçersiz REG ismi."
+mesajını basar; işlem hatalı ID (0) ile devam eder.
+
+SÖZDIZIMI (SYNTAX)
+
+Genel format:
+OPCODE DATA1 DATA2
+OPCODE DATA1
+OPCODE ; (tek başına komutlar)
 
-  Harf boyutu: Yazmaç isimleri ya tamamen BÜYÜK (AR, BADR) ya da
-  tamamen küçük (ar, badr) olmalıdır. "Ar", "aR" gibi karışık
-  kullanımlar tanınmaz ve hatalı davranışa yol açar.
+Kurallar:
 
-  Bilinmeyen bir yazmaç adı verilirse reg() fonksiyonu 0 döner.
-  Bu durum sessizce geçilir — MicraVM hata yakalar.
+Her token boşlukla ayrılır. Virgül KULLANILMAZ.
 
+Noktalı virgül (;) satır sonunu belirtmek için kullanılabilir,
+ancak zorunlu değildir.
+
+Sayısal değerler 0b (ikili), 0x (onaltılı) veya 0d (onlu) ön
+ekleriyle verilir. Ön ek yoksa sayı olarak yorumlanmaz (boş
+varsayılır).
+
+Her satır bir komuttur. Boş satırlar çıktıda boş satır üretmez.
+Ancak tanınmayan bir OPCODE girilirse satır atlanır ve çıktıda
+yalnızca bir boş satır (yeni satır karakteri) eklenir.
+
+Yorum satırı:
+Yorum desteği yoktur.
+
+Etiket (label) / Direktif:
+ETİKET <isim> <değer>; → ZIPLA OTO ile kullanılacak sembolik
+adres tanımlar. ETİKET satırları .trbin çıktısı üretmez.
+
+MOD ALANI
+
+REG modu (MODE = true) : DATA2 geçerli bir yazmaç adıdır.
+Örnek: TAŞI AR 0R; → AR = 0R
+
+IMM modu (MODE = false) : DATA2 bir yazmaç değilse ya da geçerli
+bir yazmaç adıyla bitmiyorsa doğrudan sayı olarak yorumlanır.
+Sayı ön ekleri (0b, 0x, 0d) zorunludur.
+Örnek: TAŞI AR 0d500; → AR = 500 (decimal)
+
+KOMUT SETİ
+
+Not: Tüm komutlarda DATA1 hedeftir, DATA2 kaynaktır.
+(dest-first sıralaması)
+
+---- Veri Taşıma ----
+
+TAŞI <hedef_reg> <kaynak_reg>;
+Açıklama : Bir yazmaçtan diğerine veri kopyalar.
+TRBIN : 0x2 | hedef_id | kaynak_id
+Örnek : TAŞI AR 0R;
+
+TAŞI <hedef_reg> <değer>;
+Açıklama : Anlık değeri yazmaca yükler. 32-bit.
+TRBIN : 0x3 | hedef_id | high/low_byte
+Örnek : TAŞI AR 0d500;
+
+---- Aritmetik ----
+
+EKLE <hedef_reg> <kaynak_reg>;
+TRBIN : 0x4 | hedef_id | kaynak_id
+Örnek : EKLE AR 1R;
+
+EKLE <hedef_reg> <değer>;
+TRBIN : 0x5 | hedef_id | high/low_byte
+Örnek : EKLE AR 0d10;
+
+ÇIKAR <hedef_reg> <kaynak_reg>;
+TRBIN : 0x6 | hedef_id | kaynak_id
+Örnek : ÇIKAR AR 2R;
+
+ÇIKAR <hedef_reg> <değer>;
+TRBIN : 0x7 | hedef_id | high/low_byte
+Örnek : ÇIKAR AR 0d5;
+
+ARR ++ <yazmaç>;
+Açıklama : Yazmacı 1 artırır.
+TRBIN : 0x8 | yazmaç_id
+Örnek : ARR ++ AR;
+
+ARR -- <yazmaç>;
+Açıklama : Yazmacı 1 azaltır.
+TRBIN : 0x9 | yazmaç_id
+Örnek : ARR -- AR;
+
+BÖL <hedef_reg> <kaynak_reg>;
+TRBIN : 0xA | hedef_id | kaynak_id
+Örnek : BÖL AR 3R;
+
+BÖL <hedef_reg> <değer>;
+TRBIN : 0xB | hedef_id | high/low_byte
+Örnek : BÖL AR 0d4;
+
+ÇARP <hedef_reg> <kaynak_reg>;
+TRBIN : 0xC | hedef_id | kaynak_id
+Örnek : ÇARP AR 0R;
+
+ÇARP <hedef_reg> <değer>;
+TRBIN : 0xD | hedef_id | high/low_byte
+Örnek : ÇARP AR 0d3;
+
+---- Karşılaştırma / Koşul ----
+
+EĞER <hedef_reg> <kaynak_reg>;
+TRBIN : 0xE | hedef_id | kaynak_id
+Örnek : EĞER AR 0R;
+
+EĞER <hedef_reg> <değer>;
+TRBIN : 0xF | hedef_id | high/low_byte
+Örnek : EĞER AR 0d0;
+
+BÜYÜK <kaynak_reg>;
+Açıklama : Önceki EĞER sonucunu "büyük" koşuluyla değerlendirir.
+Doğru ise belirtilen yazmaca (adrese) zıplar.
+TRBIN : 0x10 | kaynak_id
+Örnek : BÜYÜK AR;
+
+BÜYÜK <değer>;
+Açıklama : Önceki EĞER sonucu "büyük" ise belirtilen sayısal
+adrese atlar.
+TRBIN : 0x11 | high/low_byte
+Örnek : BÜYÜK 0x10;
+
+KÜÇÜK <kaynak_reg>;
+Açıklama : "küçük" koşulu; doğru ise yazmaçtaki adrese zıplar.
+TRBIN : 0x12 | kaynak_id
+Örnek : KÜÇÜK AR;
+
+KÜÇÜK <değer>;
+Açıklama : "küçük" koşulu; doğru ise sayısal adrese zıplar.
+TRBIN : 0x13 | değer
+Örnek : KÜÇÜK 0b1010;
+
+DOĞRU <kaynak_id>;
+Açıklama : "doğru" koşulu; doğru ise yazmaçtaki adrese zıplar.
+TRBIN : 0x14 | kaynak_id
+Örnek : DOĞRU AR;
+
+DOĞRU <değer>;
+Açıklama : "doğru" koşulu; doğru ise sayısal adrese zıplar.
+TRBIN : 0x15 | değer
+Örnek : DOĞRU 0d10;
+
+YANLIŞ <kaynak_id>;
+Açıklama : "yanlış" koşulu; yanlış ise yazmaçtaki adrese zıplar.
+TRBIN : 0x16 | kaynak_id
+Örnek : YANLIŞ AR;
+
+YANLIŞ <değer>;
+Açıklama : "yanlış" koşulu; yanlış ise sayısal adrese zıplar.
+TRBIN : 0x17 | değer
+Örnek : YANLIŞ 0d10;
+
+---- Atlama ----
+
+ZIPLA MANUEL <kaynak_id>;
+Açıklama : Belirtilen yazmaçtaki adrese koşulsuz atlar.
+TRBIN : 0x18 | kaynak_id
+Örnek : ZIPLA MANUEL AR;
+
+ZIPLA MANUEL <değer>;
+Açıklama : Belirtilen sayısal adrese koşulsuz atlar.
+TRBIN : 0x19 | değer
+Örnek : ZIPLA MANUEL 0d10;
+
+ZIPLA OTO <etiket>;
+Açıklama : ETİKET ile tanımlanmış sembolik adrese atlar.
+TRBIN : 0x1A | etiketin_sayısal_karşılığı
+Örnek : ZIPLA OTO dongu;
+
+---- Bellek Erişimi ----
+
+REB YAZ;
+Açıklama : BGÇR'deki veriyi (BADR) adresine yazar.
+TRBIN : 0x1B
+Örnek : REB YAZ;
+
+REB OKU;
+Açıklama : (BADR) adresindeki veriyi belirtilen yazmaca okur.
+TRBIN : 0x1C
+Örnek : REB OKU;
+
+---- Port (G/Ç) Erişimi ----
+
+PORT YAZ <port_reg>;
+Açıklama : Belirtilen yazmaçtaki port numarasına veri yazar.
+TRBIN : 0x1D | port_reg_id
+Örnek : PORT YAZ AR;
+
+PORT YAZ <değer>;
+Açıklama : Belirtilen anlık port numarasına veri yazar.
+TRBIN : 0x1E | değer
+Örnek : PORT YAZ 0d10;
+
+PORT OKU <port_reg>;
+Açıklama : Belirtilen yazmaçtaki port numarasından veri okur.
+TRBIN : 0x1F | port_reg_id
+Örnek : PORT OKU AR;
+
+PORT OKU <değer>;
+Açıklama : Belirtilen anlık port numarasından veri okur.
+TRBIN : 0x20 | değer
+Örnek : PORT OKU 0d10;
+
+---- Mantık ----
 
-----------------------------------------------------------------
-3. SÖZDIZIMI (SYNTAX)
-----------------------------------------------------------------
+VE <hedef_reg> <kaynak_reg>;
+TRBIN : 0x21 | hedef_id | kaynak_id
+Örnek : VE AR 0R;
 
-  Genel format:
-    OPCODE DATA1 DATA2;
+VE <hedef_reg> <değer>;
+TRBIN : 0x22 | hedef_id | high/low_byte
+Örnek : VE AR 0d255;
 
-  Kurallar:
-  - Her token boşlukla ayrılır. Virgül KULLANILMAZ.
-  - Sayısal değerler belirtilmelidir (0b, 0x)
-  - Sayısal değer belirtilmezse decimal varsayılır.
-  - Her satır bir komuttur. Boş satırlar çıktıya boş satır ekler.
+VEYA <hedef_reg> <kaynak_reg>;
+TRBIN : 0x23 | hedef_id | kaynak_id
+Örnek : VEYA AR 1R;
 
-  Yorum satırı:
-    Yorum desteği v2'de YOKTUR.
+VEYA <hedef_reg> <değer>;
+TRBIN : 0x24 | hedef_id | high/low_byte
+Örnek : VEYA AR 0d128;
 
-  Etiket (label) / direktif:
-    v2'de YOKTUR.
+DEĞİL <hedef_reg> <kaynak_reg>;
+TRBIN : 0x25 | hedef_id | kaynak_id
+Örnek : DEĞİL AR 0R;
 
+DEĞİL <hedef_reg> <değer>;
+TRBIN : 0x26 | hedef_id | high/low_byte
+Örnek : DEĞİL AR 0d1;
 
-----------------------------------------------------------------
-4. MOD ALANI
-----------------------------------------------------------------
+---- Etiket Tanımlama (Direktif) ----
 
-  REG modu : DATA2 bir yazmaçtır.
-    Örnek: TAŞI AR 0R;   → AR = 0R
-
-  IMM modu : DATA2 bir sayıdır (hex).
-    Örnek: TAŞI AR 0x500;  → AR = 0x500
-
-----------------------------------------------------------------
-5. KOMUT SETİ
-----------------------------------------------------------------
-
-  Not: Tüm komutlarda DATA1 hedeftir, DATA2 kaynaktır.
-  (dest-first sıralaması)
-
-  ---- Veri Taşıma ----
-
-  TAŞI <hedef_reg> <kaynak_reg>;
-    Açıklama : Bir yazmaçtan diğerine veri kopyalar.
-    TRBIN    : 0x2 | hedef_id | kaynak_id |
-    Örnek    : TAŞI AR 0R;
-
-  TAŞI <hedef_reg> <değer>;
-    Açıklama : Anlık değeri yazmaca yükler. 32-bit.
-    TRBIN    : 0x3 | hedef_id | high/low_byte |
-    Örnek    : TAŞI AR 0b500;
-
-  ---- Aritmetik ----
-
-  EKLE <hedef_reg> <kaynak_reg>;
-    TRBIN : 0x4 | hedef_id | kaynak_id
-    Örnek : EKLE AR 1R;
-
-  EKLE <hedef_reg> <değer>;
-    TRBIN : 0x5 | hedef_id | high/low_byte |
-    Örnek : EKLE AR 10;
-
-  ÇIKAR <hedef_reg> <kaynak_reg>;
-    TRBIN : 0x6 | hedef_id | kaynak_id |
-    Örnek : ÇIKAR AR R2;
-
-  ÇIKAR <hedef_reg> <değer>;
-    TRBIN : 0x7 | hedef_id | high/low_byte
-    Örnek : ÇIKAR AR 5;
-
-  BÖL <hedef_reg> <kaynak_reg>;
-    TRBIN : 0xC | hedef_id | kaynak_id |
-    Örnek : BÖL AR 3R;
-
-  BÖL <hedef_reg> <değer>;
-    TRBIN : 0xD | hedef_id | high/low_byte |
-    Örnek : BÖL AR 4;
-
-  ÇARP <hedef_reg> <kaynak_reg>;
-    TRBIN : 0xE | hedef_id | kaynak_id |
-    Örnek : ÇARP AR 0R;
-
-  ÇARP <hedef_reg> <değer>;
-    TRBIN : 0xF | hedef_id | high/low_byte |
-    Örnek : ÇARP AR 3;
-
-  ---- Artırma / Azaltma ----
-
-  ++ <yazmaç>;
-    Açıklama : Yazmacı 1 artırır.
-    TRBIN    : 0xA | yazmaç_id |
-    Örnek    : ++ AR;
-
-  -- <yazmaç>;
-    Açıklama : Yazmacı 1 azaltır.
-    TRBIN    : 0x8 | yazmaç_id |
-    Örnek    : -- AR;
-
-  Not: ++ ve -- komutlarında MOD ve DATA alanları YOKTUR.
-  Format: OPCODE <yazmaç>;
-
-  ---- Karşılaştırma / Koşul ----
-
-  EĞER <hedef_reg> <kaynak_reg>;
-    TRBIN : 0x10 | hedef_id | kaynak_id |
-    Örnek : EĞER AR 0R;
-
-  EĞER <hedef_reg> <değer>;
-    TRBIN : 0x11 | hedef_id | high/low_byte |
-    Örnek : EĞER AR 0;
-
-  BÜYÜK <kaynak_reg>;
-    Açıklama : Önceki EĞER sonucunu "büyük" koşuluyla değerlendirir. Sonuç doğru çıkarsa belirtilen kaynağa zıplar. Doğru değilse hiç zıplamaz.
-    TRBIN    : 0x12 | kaynak_id |
-    Örnek    : BÜYÜK AR;
-
-  BÜYÜK <değer>;
-    Açıklama : Önceki EĞER sonucunu "büyük" koşuluyla değerlendirir. Sonuç doğru çıkarsa belirtilen kaynağa zıplar. Doğru değilse hiç zıplamaz.
-    TRBIN    : 0x13 | high/low_byte |
-    Örnek    : BÜYÜK 0x10;
-
-  KÜÇÜK <kaynak_reg>;
-    Açıklama : Önceki EĞER sonucunu "küçük" koşuluyla değerlendirir. Sonuç doğru çıkarsa belirtilen kaynağa zıplar. Doğru değilse hiç zıplamaz.
-    TRBIN    : 0x14 | kaynak_reg |
-    Örnek    : KÜÇÜK AR;
-
-  KÜÇÜK <değer>;
-    Açıklama : Önceki EĞER sonucunu "küçük" koşuluyla değerlendirir. Sonuç doğru çıkarsa belirtilen kaynağa zıplar. Doğru değilse hiç zıplamaz.
-    TRBIN    : 0x15 | değer |
-    Örnek    : KÜÇÜK 0b1010;
-
-  DOĞRU <kaynak_id>;
-    Açıklama : Önceki EĞER sonucunu "doğru" koşuluyla değerlendirir. Sonuç doğru çıkarsa belirtilen kaynağa zıplar. Doğru değilse hiç zıplamaz.
-    TRBIN    : 0x16 | kaynak_id |
-    Örnek    : DOĞRU AR;
+ETİKET <isim> <değer>;
+Açıklama : Sembolik bir etiket tanımlar. ZIPLA OTO için
+kullanılır. Çıktı üretmez.
+Örnek : ETİKET baslangic 0x10;
 
-  DOĞRU <değer>;
-    Açıklama : Önceki EĞER sonucunu "doğru" koşuluyla değerlendirir. Sonuç doğru çıkarsa belirtilen kaynağa zıplar. Doğru değilse hiç zıplamaz.
-    TRBIN    : 0x17 | değer |
-    Örnek    : DOĞRU 10;
-
-  YANLIŞ <kaynak_id>;
-    Açıklama : Önceki EĞER sonucunu "yanlış" koşuluyla değerlendirir. Sonuç yanlış çıkarsa belirtilen kaynağa zıplar. Yanlış değilse hiç zıplamaz.
-    TRBIN    : 0x18 | kaynak_id |
-    Örnek    : YANLIŞ AR;
+TRBIN ÇIKTI FORMATI
 
-  YANLIŞ <değer>;
-    Açıklama : Önceki EĞER sonucunu "yanlış" koşuluyla değerlendirir. Sonuç yanlış çıkarsa belirtilen kaynağa zıplar. Yanlış değilse hiç zıplamaz.
-    TRBIN    : 0x19 | değer |
-    Örnek    : YANLIŞ 10;
+QuaLix her komutu pipe (|) ile ayrılmış decimal sayılar
+olarak bir satıra yazar. Her komut satırı bir TRBIN satırına
+karşılık gelir.
 
-  ---- Atlama ----
+Örnek TRBIN çıktısı:
+2|1|6
+5|1|10
+8|3
 
-  ZIPLA <kaynak_id>;
-    Açıklama : Belirtilen konuma koşulsuz atlar. "ZIPLA" veya "zıpla" her ikisi de geçerlidir.
-    TRBIN    : 0x1A | kaynak_id |
-    Örnek    : ZIPLA AR;
+Alanlar soldan sağa: opcode_id | operand1 | operand2 | ...
+Sayı formatı: decimal (onluk taban). OPCODE değerleri onaltılı
+tabanda tanımlansa da çıktıda decimal karşılıkları yer alır.
 
-  ZIPLA <değer>;
-    Açıklama : Belirtilen konuma koşulsuz atlar. "ZIPLA" veya "zıpla" her ikisi de geçerlidir.
-    TRBIN    : 0x1B | değer |
-    Örnek    : ZIPLA 10;
-
-  ---- Bellek Erişimi ----
-
-  Bellek adresi BADR ile belirlenir.
-  BGÇR ise taşınan veriyi tutar.
-
-  RYAZ;
-    Açıklama : BGÇR'deki veriyi (BADR) adresine yazar.
-    TRBIN    : 0x1C |
-    Örnek    : RYAZ;
-
-  REB OKU;
-    Açıklama : (BADR) adresindeki veriyi BGÇR'ye okur.
-    TRBIN    : 0x1D |
-    Örnek    : ROKU;
-
-  ---- Port (G/Ç) Erişimi ----
-
-  PYAZ <port_no>;
-    Açıklama : Belirtilen porta veri yazar.
-    TRBIN    : 0x1E | port_no |
-    Örnek    : PYAZ AR;
-
-  PYAZ <port_no>;
-    Açıklama : Belirtilen porta veri yazar.
-    TRBIN    : 0x1F | port_no |
-    Örnek    : PYAZ 10;
-
-  POKU <port_no>;
-    Açıklama : Belirtilen porttan veri okur.
-    TRBIN    : 0x20 | port_no |
-    Örnek    : POKU AR;
+HATA YÖNETİMİ
 
-  POKU <port_no>;
-    Açıklama : Belirtilen porttan veri okur.
-    TRBIN    : 0x21 | port_no |
-    Örnek    : POKU 10;
+QuaLix iki tür hata üretir:
 
-  ---- Mantık ----
+A) Derleme Zamanı Hataları (QuaLix tarafından):
+Dosya açma/okuma/yazma sorunları için hata kodu ve mesaj
+standart hataya (stderr) basılır, program sonlanır.
 
-  VE <hedef_reg> <kaynak_reg>;
-    TRBIN : 0x22 | hedef_id | kaynak_id |
-    Örnek : VE AR 0R;
+Hata Kodları:
+0x0001 : (Ayrılmış – config dosya hatası, mevcut sürümde kullanılmaz)
+0x0002 : Kaynak (.tbdd) dosyası açılamadı
+0x0003 : Kaynak dosya bulunamadı
+0x0004 : Kaynak dosyada okuma/yazma hatası
+0x0005 : Kaynak dosyada kritik hata
+0x0006 : Çıktı (.trbin) dosyası açılamadı
+0x0007 : Çıktı dosyası bulunamadı
+0x0008 : Çıktı dosyasında okuma/yazma hatası
+0x0009 : Çıktı dosyasında kritik hata
 
-  VE <hedef_reg> <değer>;
-    TRBIN : 0x23 | hedef_id | high/low_byte |
-    Örnek : VE AR 255;
+B) Anlam Hataları ve Uyarılar:
 
-  VEYA <hedef_reg> <kaynak_reg>;
-    TRBIN : 0x24 | hedef_id | kaynak_id |
-    Örnek : VEYA AR 1R;
+Geçersiz yazmaç adı: stderr'e "SATIR: <no> Geçersiz REG ismi."
+yazılır; yazmaç ID’si 0 kabul edilerek işlem sürdürülür.
 
-  VEYA <hedef_reg> <değer>;
-    TRBIN : 0x25 | hedef_id | high/low_byte |
-    Örnek : VEYA AR 128;
+Bilinmeyen OPCODE: hiçbir uyarı verilmez, çıktıya yalnızca
+boş bir satır (yeni satır) eklenir.
 
-  DEĞİL <hedef_reg> <kaynak_reg>;
-    TRBIN : 0x26 | hedef_id | kaynak_id |
-    Örnek : DEĞİL AR 0R;
+Tanımsız etiket (ZIPLA OTO): stderr'e "SATIR: <no> Etiket
+bulunamadı: <ad>" yazılır, komut atlanır.
 
-  DEĞİL <hedef_reg> <değer>;
-    TRBIN : 0x27 | hedef_id | high/low_byte |
-    Örnek : DEĞİL AR 1;
+C) Çalışma Zamanı Hataları:
+Tüm çalışma zamanı hataları MicraVM tarafından denetlenir.
+QuaLix bu hatalara müdahale etmez.
 
+CLI KULLANIMI
 
-----------------------------------------------------------------
-6. TRBIN ÇIKTI FORMATI
-----------------------------------------------------------------
+Kurulum:
+QuaLix /load
 
-  QuaLix her komutu pipe (|) ile ayrılmış decimal sayılar
-  olarak yazar. Her komut satırı bir TRBIN satırına karşılık gelir.
+Çalıştırılabilir dosyayı /usr/local/bin/QuaLix konumuna
+kopyalar ve çalıştırma izni verir.
+(Not: Mevcut sürümde /load işleminden sonra program hatalı
+biçimde kaynak dosya bekleyebilir; kurulum tamamlanınca
+elle kapatılmalıdır.)
 
-  Örnek TRBIN çıktısı:
-    2|1|7|
-    5|1|0|10|
-    10|1|
+Derleme:
+QuaLix <kaynak.tbdd> <çıktı.trbin>
 
-  Alanlar soldan sağa: opcode_id | operand1 | operand2 | ...
-  Sayı formatı: decimal (onluk taban)
+Örnek:
+QuaLix program.tbdd program.trbin
 
+TAM ÖRNEK PROGRAM
 
-----------------------------------------------------------------
-7. HATA YÖNETİMİ
-----------------------------------------------------------------
+Aşağıdaki örnek AR yazmacına 10 yükler, 0R’ye 5 yükler,
+AR’a 0R’yi ekler ve sonucu 1 numaralı porta yazar.
 
-  QuaLix iki tür hata üretir:
+-- program.tbdd --
 
-  A) Derleme Zamanı Hataları (QuaLix tarafından):
-     Dosya açma/okuma/yazma sorunları için hata kodu ve mesaj
-     ekrana basılır, program sonlanır.
+TAŞI AR 0d10;
+TAŞI 0R 0d5;
+EKLE AR 0R;
+PORT YAZ 0d1;
 
-     Hata Kodları:
-       0x0001 : Config dosyası açılamadı
-       0x0002 : Kaynak (.tbdd) dosyası açılamadı
-       0x0003 : Kaynak dosya bulunamadı
-       0x0004 : Kaynak dosyada okuma/yazma hatası
-       0x0005 : Kaynak dosyada kritik hata
-       0x0006 : Çıktı (.trbin) dosyası açılamadı
-       0x0007 : Çıktı dosyası bulunamadı
-       0x0008 : Çıktı dosyasında okuma/yazma hatası
-       0x0009 : Çıktı dosyasında kritik hata
+-- Beklenen program.trbin çıktısı --
 
-  B) Anlam Hataları (Config log'una yazılır):
-     Bilinmeyen MOD kullanımı gibi durumlar derlemeyi durdurmaz.
-     Hatalı satır Config dosyasına (/usr/local/etc/QuaLix.conf)
-     şu formatta kaydedilir:
-       Satır: <satır_no> | Bilinmeyen mod.
+3|1|10
+3|6|5
+5|1|5
+33|5
 
-  C) Çalışma Zamanı Hataları:
-     Tüm çalışma zamanı hataları MicraVM tarafından denetlenir.
-     QuaLix bu hatalara müdahale etmez.
+BİLİNEN V2.5 DAVRANIŞLARI
 
-----------------------------------------------------------------
-8. CLI KULLANIMI
-----------------------------------------------------------------
+Bilinmeyen OPCODE sessizce geçilir; TRBIN’e boş satır eklenir.
 
-  Kurulum:
-    QuaLix /load
+REB OKU komutu hem yazmaç hem de anlık değer alabilir; anlık
+değerli kullanımı deneyseldir, anlamı MicraVM’ye bağlıdır.
 
-    /usr/local/bin/QuaLix konumuna kopyalar ve çalıştırma
-    iznini verir.
+PORT YAZ / PORT OKU komutları yazmaç veya anlık port numarası
+ile çalışır.
 
-  Derleme:
-    QuaLix <kaynak.tbdd> <çıktı.trbin>
+Fonksiyon, prosedür, standart kütüphane ve yorum desteği yoktur.
 
-  Örnek:
-    QuaLix program.tbdd program.trbin
+Kurulum (/load) esnasında program kendiliğinden sonlanmaz;
+elle kapatılması önerilir.
 
+DOSYA UZANTILARI
 
-----------------------------------------------------------------
-9. TAM ÖRNEK PROGRAM
-----------------------------------------------------------------
-
-  Aşağıdaki örnek AR yazmacına 10 yükler, R0'a 5 yükler,
-  AR'a R0'ı ekler ve sonucu porta yazar.
-
-  -- program.tbdd --
-
-  TAŞI AR 10;
-  TAŞI 0R 5;
-  EKLE AR 0R;
-  PYAZ 1;
-
-  -- Beklenen program.trbin çıktısı --
-
-  3|1|10
-  3|6|5
-  5|1|0
-  31|1
-
-
-----------------------------------------------------------------
-10. BİLİNEN V2 DAVRANIŞLARI
-----------------------------------------------------------------
-
-  1. Bilinmeyen OPCODE sessizce geçilir; Config'e yazılmaz,
-     TRBIN'e eklenmez. Sadece boş satır eklenir.
-
-  2. Fonksiyon, prosedür, etiket, direktif ve standart
-     kütüphane v1'de YOKTUR.
-
-----------------------------------------------------------------
-11. DOSYA UZANTILARI
-----------------------------------------------------------------
-
-  .tbdd   : QuaLix kaynak dosyası (TBDD assembler kodu)
-  .trbin  : QuaLix çıktı dosyası (Düzen mimarisi ikili verisi)
-
+.tbdd : QuaLix kaynak dosyası (TBDD assembler kodu)
+.trbin : QuaLix çıktı dosyası (Düzen mimarisi ikili verisi)
 
 ================================================================
-Son güncelleme: QuaLix v2.0 - 16 Nisan 2026
+Son güncelleme: QuaLix v2.5 - 16 Nisan 2026
 ================================================================
