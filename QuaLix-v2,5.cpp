@@ -17,7 +17,7 @@ INFO info;
 struct t {
     string OPCODE;        // KAPI, RAM, PORTA vs.
     bool MODE;          // IMM mi REG mi?
-    string DATA1;         // AR, 0R (hedef)
+    string DATA1;         // 123, 0xAA (hedef)
     string DATA2;         // 456, 0xBB (kaynak)
 };
 
@@ -89,6 +89,7 @@ void load() {
 
 int main(int argc, char* argv[]) {
     cls();
+
     if (argc < 2) {
         cerr << "Boş argüman girişi yaptınız." << endl;
         return 1;
@@ -401,21 +402,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "REB" || T.OPCODE == "reb") {
             if (T.DATA1 == "YAZ" || T.DATA1 == "yaz") {
-                if (T.MODE == true) {
-                    Out << 0x1C << "|" << (int)reg(T.DATA2);
-                } else if (T.MODE == false) {
-                    Out << 0x1D << "|" << (int)imm;
-                } else {
-                    continue;
-                }
+                Out << 0x1B << "|";
             } else if (T.DATA1 == "OKU" || T.DATA1 == "oku") {
-                if (T.MODE == true) {
-                    Out << 0x1E << "|" << (int)reg(T.DATA2);
-                } else if (T.MODE == false) {
-                    Out << 0x1F << "|" << (int)imm;
-                } else {
-                    continue;
-                }
+                Out << 0x1C << "|";
             } else {
                 continue;
             }
@@ -424,17 +413,17 @@ int main(int argc, char* argv[]) {
         if (T.OPCODE == "PORT" || T.OPCODE == "port") {
             if (T.DATA1 == "YAZ" || T.DATA1 == "yaz") {
                 if (T.MODE == true) {
-                    Out << 0x20 << "|" << (int)reg(T.DATA2);
+                    Out << 0x1D << "|" << (int)reg(T.DATA2);
                 } else if (T.MODE == false) {
-                    Out << 0x21 << "|" << (int)imm;
+                    Out << 0x1E << "|" << (int)imm;
                 } else {
                     continue;
                 }
             } else if (T.DATA1 == "OKU" || T.DATA1 == "oku") {
                 if (T.MODE == true) {
-                    Out << 0x22 << "|" << (int)reg(T.DATA2);
+                    Out << 0x1F << "|" << (int)reg(T.DATA2);
                 } else if (T.MODE == false) {
-                    Out << 0x23 << "|" << (int)imm;
+                    Out << 0x20 << "|" << (int)imm;
                 } else {
                     continue;
                 }
