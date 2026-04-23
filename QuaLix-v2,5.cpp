@@ -434,9 +434,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "VE" || T.OPCODE == "ve") {
             if (T.MODE == true) {
-                Out << 0x24 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x21 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x25 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x22 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
             } else {
                 continue;
             }
@@ -444,9 +444,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "VEYA" || T.OPCODE == "veya") {
             if (T.MODE == true) {
-                Out << 0x26 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x23 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x27 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x24 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
             } else {
                 continue;
             }
@@ -454,9 +454,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "DEĞİL" || T.OPCODE == "değil") {
             if (T.MODE == true) {
-                Out << 0x28 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x25 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
             } else if (T.MODE == false) {
-                Out << 0x29 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x26 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
             } else {
                 continue;
             }
