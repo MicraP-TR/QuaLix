@@ -17,7 +17,7 @@ INFO info;
 struct t {
     string OPCODE;        // KAPI, RAM, PORTA vs.
     bool MODE;          // IMM mi REG mi?
-    string DATA1;         // 123, 0xAA (hedef)
+    string DATA1;         // AR, BADR (hedef)
     string DATA2;         // 456, 0xBB (kaynak)
 };
 
@@ -89,6 +89,10 @@ void load() {
 
 int main(int argc, char* argv[]) {
     cls();
+
+    argc = 2;
+    argv[1] = "C:\\Users\\micracer\\Desktop\\Projeler\\QuaLix\\boot.tbdd";
+    argv[2] = "C:\\Users\\micracer\\Desktop\\Projeler\\QuaLix\\boot.trbin";
 
     if (argc < 2) {
         cerr << "Boş argüman girişi yaptınız." << endl;
@@ -166,7 +170,7 @@ int main(int argc, char* argv[]) {
     string c;
     string d;
     string lab[1024];
-    uint16_t ip;
+    uint16_t ip = 0;
     uint32_t imm;
     bool tab;
 
@@ -176,6 +180,86 @@ int main(int argc, char* argv[]) {
         T.DATA2 = "";
         T.MODE = true;
         info.uinter++;
+        i = 0;
+        info.counter = 0;
+
+        if (KOD.substr(0, 3) == "   ") {
+            tab = true;
+        } else {
+            tab = false;
+        }
+
+        while (i < KOD.size()) {
+            c = KOD.substr(i, 1);
+
+            if (i + 1 < KOD.size()) {
+                d = KOD.substr(i + 1, 1);
+            } else {
+                d = "";
+            }
+
+            if (c == " ") {
+                if (d != " " && d != "," && d != "") {
+                    if (info.counter == 3) {
+                        break;
+                    } else {
+                        if (info.counter == 0 && tab == true) {
+                            tab = false;
+                            i++;
+                            continue;
+                        }
+                        if (tab == false) {
+                            info.counter++;
+                            i++;
+                            continue;
+                        }
+                    }
+                }
+            } else if (c != " ") {
+                if (info.counter == 3) break;
+                if (info.counter == 0) T.OPCODE += c;
+                if (info.counter == 1) T.DATA1 += c;
+                if (info.counter == 2) T.DATA2 += c;
+            }
+
+            i++;
+        }
+
+        if (T.OPCODE == "ETİKET" || T.OPCODE == "etiket") {
+            if (T.DATA1 == "ATA" || T.DATA1 == "ata") {
+                ip = 0;
+                while (lab[ip] != "") {
+                    ip++;
+                }
+                lab[ip] = T.DATA2;
+                lab[ip] += "|" + to_string(info.uinter);
+            }
+        }
+        ip++;
+    }
+
+    ip = 0;
+    while (true) {
+        while (lab[ip] != "") {
+            ip++;
+        }
+        if (lab[ip] == "") {
+            break;
+        }
+        Out << lab[ip];
+    }
+
+    info.uinter = 0;
+    File.clear();
+    File.seekg(0, std::ios::beg);
+
+    while (getline(File, KOD)) {
+        T.OPCODE = "";
+        T.DATA1 = "";
+        T.DATA2 = "";
+        T.MODE = true;
+        info.uinter++;
+        ip = 0;
         i = 0;
         info.counter = 0;
 
@@ -246,20 +330,11 @@ int main(int argc, char* argv[]) {
             imm = 0;
         }
 
-        if (T.OPCODE == "ETİKET" || T.OPCODE == "etiket") {
-            ip = 0;
-            while (lab[ip] != "") {
-                ip++;
-            }
-            lab[ip] = T.DATA1;
-            lab[ip] += "|" + T.DATA2;
-        }
-
         if (T.OPCODE == "TAŞI" || T.OPCODE == "taşı") {
             if (T.MODE == true) {
-                Out << 0x2 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x2 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << Q;
             } else if (T.MODE == false) {
-                Out << 0x3 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x3 << "|" << (int)reg(T.DATA1) << "|" << (int)imm  << Q;
             } else {
                 continue;
             }
@@ -267,9 +342,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "EKLE" || T.OPCODE == "ekle") {
             if (T.MODE == true) {
-                Out << 0x4 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x4 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << Q;
             } else if (T.MODE == false) {
-                Out << 0x5 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x5 << "|" << (int)reg(T.DATA1) << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -277,9 +352,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "ÇIKAR" || T.OPCODE == "çıkar") {
             if (T.MODE == true) {
-                Out << 0x6 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x6 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << Q;
             } else if (T.MODE == false) {
-                Out << 0x7 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x7 << "|" << (int)reg(T.DATA1) << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -287,18 +362,18 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "ARR" || T.OPCODE == "arr") {
             if (T.DATA1 == "++") {
-                Out << 0x8 << "|" << (int)reg(T.DATA2);
+                Out << 0x8 << "|" << (int)reg(T.DATA2) << Q;
             }
             else if (T.DATA1 == "--") {
-                Out << 0x9 << "|" << (int)reg(T.DATA2);
+                Out << 0x9 << "|" << (int)reg(T.DATA2) << Q;
             }
         }
 
         if (T.OPCODE == "BÖL" || T.OPCODE == "böl") {
             if (T.MODE == true) {
-                Out << 0xA << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0xA << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << Q;
             } else if (T.MODE == false) {
-                Out << 0xB << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0xB << "|" << (int)reg(T.DATA1) << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -306,9 +381,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "ÇARP" || T.OPCODE == "çarp") {
             if (T.MODE == true) {
-                Out << 0xC << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0xC << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << Q;
             } else if (T.MODE == false) {
-                Out << 0xD << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0xD << "|" << (int)reg(T.DATA1) << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -316,9 +391,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "EĞER" || T.OPCODE == "eğer") {
             if (T.MODE == true) {
-                Out << 0xE << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0xE << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << Q;
             } else if (T.MODE == false) {
-                Out << 0xF << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0xF << "|" << (int)reg(T.DATA1) << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -326,9 +401,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "BÜYÜK" || T.OPCODE == "büyük") {
             if (T.MODE == true) {
-                Out << 0x10 << "|" << (int)reg(T.DATA1);
+                Out << 0x10 << "|" << (int)reg(T.DATA1) << Q;
             } else if (T.MODE == false) {
-                Out << 0x11 << "|" << (int)imm;
+                Out << 0x11 << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -336,9 +411,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "KÜÇÜK" || T.OPCODE == "küçük") {
             if (T.MODE == true) {
-                Out << 0x12 << "|" << (int)reg(T.DATA1);
+                Out << 0x12 << "|" << (int)reg(T.DATA1) << Q;
             } else if (T.MODE == false) {
-                Out << 0x13 << "|" << (int)imm;
+                Out << 0x13 << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -346,9 +421,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "DOĞRU" || T.OPCODE == "doğru") {
             if (T.MODE == true) {
-                Out << 0x14 << "|" << (int)reg(T.DATA1);
+                Out << 0x14 << "|" << (int)reg(T.DATA1) << Q;
             } else if (T.MODE == false) {
-                Out << 0x15 << "|" << (int)imm;
+                Out << 0x15 << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -356,40 +431,29 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "YANLIŞ" || T.OPCODE == "yanlış") {
             if (T.MODE == true) {
-                Out << 0x16 << "|" << (int)reg(T.DATA1);
+                Out << 0x16 << "|" << (int)reg(T.DATA1) << Q;
             } else if (T.MODE == false) {
-                Out << 0x17 << "|" << (int)imm;
+                Out << 0x17 << "|" << (int)imm << Q;
             } else {
                 continue;
             }
         }
 
         if (T.OPCODE == "ZIPLA" || T.OPCODE == "zıpla") {
-            if (T.DATA1 == "MANUEL" || T.DATA1 == "manuel") {
-                if (T.MODE == true) {
-                    Out << 0x18 << "|" << (int)reg(T.DATA2);
-                } else if (T.MODE == false) {
-                    Out << 0x19 << "|" << (int)imm;
-                } else {
-                    continue;
-                }
-            } else if (T.DATA1 == "OTO" || T.DATA1 == "oto") {
-                ip = 0;
+            if (T.DATA1 == "OTO" || T.DATA1 == "oto") {
                 bool found = false;
+                ip = 0;
                 while (lab[ip] != "") {
                     i = lab[ip].find('|');
-                    if (i == string::npos) {
+                    size_t p = lab[ip].size();
+                    if (i == string::npos || lab[ip].substr(0, i) != T.DATA2) {
                         ip++;
                         continue;
                     }
-                    string etiketIsmi = lab[ip].substr(0, i);  // '|' öncesi
-                    if (etiketIsmi == T.DATA2) {
-                        string labi = lab[ip].substr(i + 1);  // '|' sonrası
-                        Out << 0x1A << "|" << stoi(labi, nullptr, 10);
-                        found = true;
-                        break;
-                    }
-                    ip++;
+                    string satirNo = lab[ip].substr(i + 1, p - i);
+                    Out << 0x18 << "|" << stoi(satirNo, nullptr, 10) << Q;
+                    found = true;
+                    break;
                 }
                 if (!found) {
                     cerr << "SATIR: " << info.uinter << " Etiket bulunamadı: " << T.DATA2 << endl;
@@ -402,9 +466,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "REB" || T.OPCODE == "reb") {
             if (T.DATA1 == "YAZ" || T.DATA1 == "yaz") {
-                Out << 0x1B << "|";
+                Out << 0x19 << "|" << Q;
             } else if (T.DATA1 == "OKU" || T.DATA1 == "oku") {
-                Out << 0x1C << "|";
+                Out << 0x1A << "|" << Q;
             } else {
                 continue;
             }
@@ -413,17 +477,17 @@ int main(int argc, char* argv[]) {
         if (T.OPCODE == "PORT" || T.OPCODE == "port") {
             if (T.DATA1 == "YAZ" || T.DATA1 == "yaz") {
                 if (T.MODE == true) {
-                    Out << 0x1D << "|" << (int)reg(T.DATA2);
+                    Out << 0x1B << "|" << (int)reg(T.DATA2) << Q;
                 } else if (T.MODE == false) {
-                    Out << 0x1E << "|" << (int)imm;
+                    Out << 0x1C << "|" << (int)imm << Q;
                 } else {
                     continue;
                 }
             } else if (T.DATA1 == "OKU" || T.DATA1 == "oku") {
                 if (T.MODE == true) {
-                    Out << 0x1F << "|" << (int)reg(T.DATA2);
+                    Out << 0x1D << "|" << (int)reg(T.DATA2) << Q;
                 } else if (T.MODE == false) {
-                    Out << 0x20 << "|" << (int)imm;
+                    Out << 0x1E << "|" << (int)imm << Q;
                 } else {
                     continue;
                 }
@@ -434,9 +498,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "VE" || T.OPCODE == "ve") {
             if (T.MODE == true) {
-                Out << 0x21 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x1F << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << Q;
             } else if (T.MODE == false) {
-                Out << 0x22 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x20 << "|" << (int)reg(T.DATA1) << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -444,9 +508,9 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "VEYA" || T.OPCODE == "veya") {
             if (T.MODE == true) {
-                Out << 0x23 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x21 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << Q;
             } else if (T.MODE == false) {
-                Out << 0x24 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x22 << "|" << (int)reg(T.DATA1) << "|" << (int)imm << Q;
             } else {
                 continue;
             }
@@ -454,18 +518,35 @@ int main(int argc, char* argv[]) {
 
         if (T.OPCODE == "DEĞİL" || T.OPCODE == "değil") {
             if (T.MODE == true) {
-                Out << 0x25 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2);
+                Out << 0x23 << "|" << (int)reg(T.DATA1) << "|" << (int)reg(T.DATA2) << Q;
             } else if (T.MODE == false) {
-                Out << 0x26 << "|" << (int)reg(T.DATA1) << "|" << (int)imm;
+                Out << 0x24 << "|" << (int)reg(T.DATA1) << "|" << (int)imm << Q;
             } else {
                 continue;
             }
         }
 
-        if (T.OPCODE == "") {
+        if (T.OPCODE == "IRQ" || T.OPCODE == "irq") {
+            bool found = false;
+            ip = 0;
+            while (lab[ip] != "") {
+                i = lab[ip].find('|');
+                size_t p = lab[ip].size();
+                if (i == string::npos || lab[ip].substr(0, i) != T.DATA1) {
+                    ip++;
+                    continue;
+                }
+                string satirNo = lab[ip].substr(i + 1, i - p);
+                Out << 0x25 << "|" << stoi(satirNo, nullptr, 10) << "|" << (int)imm << Q;
+                found = true;
+                break;
+            }
+            if (!found) {
+                cerr << "SATIR: " << info.uinter << " Etiket bulunamadı: " << T.DATA2 << endl;
+                continue;
+            }
+        } else {
             continue;
         }
-        Out << endl;
     }
-    return 0;
 }
