@@ -95,195 +95,192 @@ Not: Tüm komutlarda DATA1 hedeftir, DATA2 kaynaktır.
 
 ---- Veri Taşıma ----
 
-TAŞI <hedef_reg> <kaynak_reg>;
+TAŞI <hedef_reg> <kaynak_reg>
 Açıklama : Bir yazmaçtan diğerine veri kopyalar.
 TRBIN : 0x2 | hedef_id | kaynak_id
 Örnek : TAŞI AR 0R;
 
-TAŞI <hedef_reg> <değer>;
+TAŞI <hedef_reg> <değer>
 Açıklama : Anlık değeri yazmaca yükler. 32-bit.
 TRBIN : 0x3 | hedef_id | high/low_byte
 Örnek : TAŞI AR 0d500;
 
 ---- Aritmetik ----
 
-EKLE <hedef_reg> <kaynak_reg>;
+EKLE <hedef_reg> <kaynak_reg>
 TRBIN : 0x4 | hedef_id | kaynak_id
 Örnek : EKLE AR 1R;
 
-EKLE <hedef_reg> <değer>;
+EKLE <hedef_reg> <değer>
 TRBIN : 0x5 | hedef_id | high/low_byte
 Örnek : EKLE AR 0d10;
 
-ÇIKAR <hedef_reg> <kaynak_reg>;
+ÇIKAR <hedef_reg> <kaynak_reg>
 TRBIN : 0x6 | hedef_id | kaynak_id
 Örnek : ÇIKAR AR 2R;
 
-ÇIKAR <hedef_reg> <değer>;
+ÇIKAR <hedef_reg> <değer>
 TRBIN : 0x7 | hedef_id | high/low_byte
 Örnek : ÇIKAR AR 0d5;
 
-ARR ++ <yazmaç>;
+ARR ++ <yazmaç>
 Açıklama : Yazmacı 1 artırır.
 TRBIN : 0x8 | yazmaç_id
 Örnek : ARR ++ AR;
 
-ARR -- <yazmaç>;
+ARR -- <yazmaç>
 Açıklama : Yazmacı 1 azaltır.
 TRBIN : 0x9 | yazmaç_id
 Örnek : ARR -- AR;
 
-BÖL <hedef_reg> <kaynak_reg>;
+BÖL <hedef_reg> <kaynak_reg>
 TRBIN : 0xA | hedef_id | kaynak_id
 Örnek : BÖL AR 3R;
 
-BÖL <hedef_reg> <değer>;
+BÖL <hedef_reg> <değer>
 TRBIN : 0xB | hedef_id | high/low_byte
 Örnek : BÖL AR 0d4;
 
-ÇARP <hedef_reg> <kaynak_reg>;
+ÇARP <hedef_reg> <kaynak_reg>
 TRBIN : 0xC | hedef_id | kaynak_id
 Örnek : ÇARP AR 0R;
 
-ÇARP <hedef_reg> <değer>;
+ÇARP <hedef_reg> <değer>
 TRBIN : 0xD | hedef_id | high/low_byte
 Örnek : ÇARP AR 0d3;
 
 ---- Karşılaştırma / Koşul ----
 
-EĞER <hedef_reg> <kaynak_reg>;
+EĞER <hedef_reg> <kaynak_reg>
 TRBIN : 0xE | hedef_id | kaynak_id
 Örnek : EĞER AR 0R;
 
-EĞER <hedef_reg> <değer>;
+EĞER <hedef_reg> <değer>
 TRBIN : 0xF | hedef_id | high/low_byte
 Örnek : EĞER AR 0d0;
 
-BÜYÜK <kaynak_reg>;
+BÜYÜK <kaynak_reg>
 Açıklama : Önceki EĞER sonucunu "büyük" koşuluyla değerlendirir.
 Doğru ise belirtilen yazmaca (adrese) zıplar.
 TRBIN : 0x10 | kaynak_id
 Örnek : BÜYÜK AR;
 
-BÜYÜK <değer>;
+BÜYÜK <değer>
 Açıklama : Önceki EĞER sonucu "büyük" ise belirtilen sayısal
 adrese atlar.
 TRBIN : 0x11 | high/low_byte
 Örnek : BÜYÜK 0x10;
 
-KÜÇÜK <kaynak_reg>;
+KÜÇÜK <kaynak_reg>
 Açıklama : "küçük" koşulu; doğru ise yazmaçtaki adrese zıplar.
 TRBIN : 0x12 | kaynak_id
 Örnek : KÜÇÜK AR;
 
-KÜÇÜK <değer>;
+KÜÇÜK <değer>
 Açıklama : "küçük" koşulu; doğru ise sayısal adrese zıplar.
 TRBIN : 0x13 | değer
 Örnek : KÜÇÜK 0b1010;
 
-DOĞRU <kaynak_id>;
+DOĞRU <kaynak_id>
 Açıklama : "doğru" koşulu; doğru ise yazmaçtaki adrese zıplar.
 TRBIN : 0x14 | kaynak_id
 Örnek : DOĞRU AR;
 
-DOĞRU <değer>;
+DOĞRU <değer>
 Açıklama : "doğru" koşulu; doğru ise sayısal adrese zıplar.
 TRBIN : 0x15 | değer
 Örnek : DOĞRU 0d10;
 
-YANLIŞ <kaynak_id>;
+YANLIŞ <kaynak_id>
 Açıklama : "yanlış" koşulu; yanlış ise yazmaçtaki adrese zıplar.
 TRBIN : 0x16 | kaynak_id
 Örnek : YANLIŞ AR;
 
-YANLIŞ <değer>;
+YANLIŞ <değer>
 Açıklama : "yanlış" koşulu; yanlış ise sayısal adrese zıplar.
 TRBIN : 0x17 | değer
 Örnek : YANLIŞ 0d10;
 
 ---- Atlama ----
 
-ZIPLA MANUEL <kaynak_id>;
-Açıklama : Belirtilen yazmaçtaki adrese koşulsuz atlar.
-TRBIN : 0x18 | kaynak_id
-Örnek : ZIPLA MANUEL AR;
-
-ZIPLA MANUEL <değer>;
-Açıklama : Belirtilen sayısal adrese koşulsuz atlar.
-TRBIN : 0x19 | değer
-Örnek : ZIPLA MANUEL 0d10;
-
-ZIPLA OTO <etiket>;
+ZIPLA OTO <etiket>
 Açıklama : ETİKET ile tanımlanmış sembolik adrese atlar.
-TRBIN : 0x1A | etiketin_sayısal_karşılığı
+TRBIN : 0x18 | etiketin satır adresi
 Örnek : ZIPLA OTO dongu;
 
 ---- Bellek Erişimi ----
 
-REB YAZ;
+REB YAZ
 Açıklama : BGÇR'deki veriyi (BADR) adresine yazar.
-TRBIN : 0x1B
+TRBIN : 0x19
 Örnek : REB YAZ;
 
-REB OKU;
+REB OKU
 Açıklama : (BADR) adresindeki veriyi belirtilen yazmaca okur.
-TRBIN : 0x1C
+TRBIN : 0x1A
 Örnek : REB OKU;
 
 ---- Port (G/Ç) Erişimi ----
 
-PORT YAZ <port_reg>;
+PORT YAZ <port_reg>
 Açıklama : Belirtilen yazmaçtaki port numarasına veri yazar.
-TRBIN : 0x1D | port_reg_id
+TRBIN : 0x1B | port_reg_id
 Örnek : PORT YAZ AR;
 
-PORT YAZ <değer>;
+PORT YAZ <değer>
 Açıklama : Belirtilen anlık port numarasına veri yazar.
-TRBIN : 0x1E | değer
+TRBIN : 0x1C | değer
 Örnek : PORT YAZ 0d10;
 
-PORT OKU <port_reg>;
+PORT OKU <port_reg>
 Açıklama : Belirtilen yazmaçtaki port numarasından veri okur.
-TRBIN : 0x1F | port_reg_id
+TRBIN : 0x1D | port_reg_id
 Örnek : PORT OKU AR;
 
-PORT OKU <değer>;
+PORT OKU <değer>
 Açıklama : Belirtilen anlık port numarasından veri okur.
-TRBIN : 0x20 | değer
+TRBIN : 0x1E | değer
 Örnek : PORT OKU 0d10;
 
 ---- Mantık ----
 
-VE <hedef_reg> <kaynak_reg>;
-TRBIN : 0x21 | hedef_id | kaynak_id
+VE <hedef_reg> <kaynak_reg>
+TRBIN : 0x1F | hedef_id | kaynak_id
 Örnek : VE AR 0R;
 
-VE <hedef_reg> <değer>;
-TRBIN : 0x22 | hedef_id | high/low_byte
+VE <hedef_reg> <değer>
+TRBIN : 0x20 | hedef_id | high/low_byte
 Örnek : VE AR 0d255;
 
-VEYA <hedef_reg> <kaynak_reg>;
-TRBIN : 0x23 | hedef_id | kaynak_id
+VEYA <hedef_reg> <kaynak_reg>
+TRBIN : 0x21 | hedef_id | kaynak_id
 Örnek : VEYA AR 1R;
 
-VEYA <hedef_reg> <değer>;
-TRBIN : 0x24 | hedef_id | high/low_byte
+VEYA <hedef_reg> <değer>
+TRBIN : 0x22 | hedef_id | high/low_byte
 Örnek : VEYA AR 0d128;
 
-DEĞİL <hedef_reg> <kaynak_reg>;
-TRBIN : 0x25 | hedef_id | kaynak_id
+DEĞİL <hedef_reg> <kaynak_reg>
+TRBIN : 0x23 | hedef_id | kaynak_id
 Örnek : DEĞİL AR 0R;
 
-DEĞİL <hedef_reg> <değer>;
-TRBIN : 0x26 | hedef_id | high/low_byte
+DEĞİL <hedef_reg> <değer>
+TRBIN : 0x24 | hedef_id | high/low_byte
 Örnek : DEĞİL AR 0d1;
 
 ---- Etiket Tanımlama (Direktif) ----
 
-ETİKET <isim> <değer>;
-Açıklama : Sembolik bir etiket tanımlar. ZIPLA OTO için
+ETİKET ATA <etiket>
+Açıklama : Sembolik bir etiket tanımlar. ZIPLA OTO ve IRQ OTO için
 kullanılır. Çıktı üretmez.
-Örnek : ETİKET baslangic 0x10;
+Örnek : ETİKET ATA dongu;
+
+---- Kesme (IRQ) Erişimi ----
+
+IRQ OTO <etiket>
+Açıklama : ETİKET ile tanımlanmış sembolik adrese IRQ geldiğinde o IRQ'e atlar.
+TRBIN : 0x25 | etiketin satır adresi
+Örnek : IRQ OTO irq_geldi;
 
 TRBIN ÇIKTI FORMATI
 
@@ -324,8 +321,7 @@ B) Anlam Hataları ve Uyarılar:
 Geçersiz yazmaç adı: stderr'e "SATIR: <no> Geçersiz REG ismi."
 yazılır; yazmaç ID’si 0 kabul edilerek işlem sürdürülür.
 
-Bilinmeyen OPCODE: hiçbir uyarı verilmez, çıktıya yalnızca
-boş bir satır (yeni satır) eklenir.
+Bilinmeyen OPCODE: hiçbir uyarı verilmez, çıktıya bir şey eklemez.
 
 Tanımsız etiket (ZIPLA OTO): stderr'e "SATIR: <no> Etiket
 bulunamadı: <ad>" yazılır, komut atlanır.
@@ -365,14 +361,14 @@ PORT YAZ 0d1;
 
 -- Beklenen program.trbin çıktısı --
 
-3|1|10
-3|6|5
-5|1|5
-33|5
+3|1|10|
+3|6|5|
+5|1|5|
+33|5|
 
 BİLİNEN V2.5 DAVRANIŞLARI
 
-Bilinmeyen OPCODE sessizce geçilir; TRBIN’e boş satır eklenir.
+Bilinmeyen OPCODE sessizce geçilir; TRBIN’e bir şey eklenmez.
 
 REB OKU komutu hem yazmaç hem de anlık değer alabilir; anlık
 değerli kullanımı deneyseldir, anlamı MicraVM’ye bağlıdır.
@@ -391,5 +387,5 @@ DOSYA UZANTILARI
 .trbin : QuaLix çıktı dosyası (Düzen mimarisi ikili verisi)
 
 ================================================================
-Son güncelleme: QuaLix v2.5 - 16 Nisan 2026
+Son güncelleme: QuaLix v2.5 - 1 Mayıs 2026
 ================================================================
