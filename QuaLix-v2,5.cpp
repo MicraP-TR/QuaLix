@@ -90,10 +90,6 @@ void load() {
 int main(int argc, char* argv[]) {
     cls();
 
-    argc = 2;
-    argv[1] = "C:\\Users\\micracer\\Desktop\\Projeler\\QuaLix\\boot.tbdd";
-    argv[2] = "C:\\Users\\micracer\\Desktop\\Projeler\\QuaLix\\boot.trbin";
-
     if (argc < 2) {
         cerr << "Boş argüman girişi yaptınız." << endl;
         return 1;
